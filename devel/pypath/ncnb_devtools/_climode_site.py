@@ -21,6 +21,13 @@ def main( parser ):
     args = parser.parse_args()
     build_site( args )
 
+SLOW_WARNING = ( 'This notebook takes a long time to run, so the website is'
+                 ' currently built without running it, and its outputs are'
+                 ' not shown. To see them, run it yourself: download it or'
+                 ' open it in Google Colab with the links above.' )
+FAILED_WARNING = ( 'This notebook failed when the website was built, so its'
+                   ' outputs are not shown.' )
+
 def build_site( args ):
     import json
     import pathlib
@@ -38,6 +45,7 @@ def build_site( args ):
     out.mkdir( parents = True, exist_ok = True )
     workdir = make_workdir( args )
     executed = {}
+    warnings = {}
     nfail = 0
     if not args.no_execute:
         torun = notebooks
@@ -46,6 +54,7 @@ def build_site( args ):
             for nb in notebooks:
                 if nb.settings.slow:
                     print(f'Skipping {nb.shortkey} (slow, shown unexecuted)')
+                    warnings[nb.shortkey] = SLOW_WARNING
         jobs = [ ( nb, env_kind( Requirements( nb.settings, cfg ), args.env ) )
                  for nb in torun ]
         skipped = [ nb.shortkey for nb, k in jobs if k is None ]
@@ -67,6 +76,8 @@ def build_site( args ):
             raise SystemExit(f'\nERROR: {nfail} notebooks failed (use'
                              ' --allow-failures to build the website anyway)')
         for nb, res in results:
+            if not res.ok:
+                warnings[nb.settings.shortkey] = FAILED_WARNING
             if res.ok:
                 page = json.loads( res.output.read_text( encoding = 'utf-8' ) )
                 page = finalize_executed( page )
@@ -77,7 +88,8 @@ def build_site( args ):
                                            'source' : links_markdown(nb,cfg) } )
                 executed[nb.settings.shortkey] = page
     print('Building the website', flush = True)
-    write_sources( notebooks, executed, cfg, out / 'src', out / 'colab' )
+    write_sources( notebooks, executed, cfg, out / 'src', out / 'colab',
+                   warnings )
     env = venv_env( SPHINX_PACKAGES, python = args.python,
                     log = workdir / 'environments.log' )
     build_html( env, out / 'src', out / 'html', workdir / 'sphinx.log' )

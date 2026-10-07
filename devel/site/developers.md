@@ -49,8 +49,10 @@ The keys are:
 * `max-line-length`: Maximum length of lines in code cells, if the default (120
   characters) is not suitable, e.g. for embedded data.
 * `slow`: Set to `yes` for notebooks which take long to run, even with their
-  test parameters. They can then be skipped with `--skip-slow` (e.g. while
-  debugging other things).
+  test parameters. They can be skipped with `--skip-slow` (e.g. while
+  debugging), or run alone with `test --only-slow`. In CI, they are run by a
+  separate workflow (`tests_slow`), and for now not on the website, where
+  their pages show a warning instead.
 * `test-parameters`: Values used when testing, e.g. to reduce statistics in
   notebooks which take a long time to run (`# test-parameters: n = 1000; m = 2`).
   The notebook must then put these numbers in a single code cell, tagged

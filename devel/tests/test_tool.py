@@ -283,3 +283,7 @@ def test_slow_setting( fakerepo ):
     f.write_text( json.dumps(nb) )
     p = run_tool( 'check', check = False )
     assert p.returncode != 0 and 'slow must be "yes" or "no"' in p.stdout
+
+def test_only_slow_and_skip_slow_conflict( fakerepo ):
+    p = run_tool( 'test', '--only-slow', '--skip-slow', check = False )
+    assert p.returncode != 0 and 'can not be combined' in p.stderr

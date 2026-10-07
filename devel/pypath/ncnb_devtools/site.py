@@ -88,9 +88,11 @@ ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
 ul.ncnb-list li { margin: 0.05em 0 !important; }
 '''
 
-def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
+def write_sources( notebooks, executed, cfg, srcdir, colabdir,
+                   warnings = None ):
     """Write the Sphinx sources. executed maps shortkeys to executed notebooks
-    (dicts); notebooks which are not in it are included unexecuted."""
+    (dicts); notebooks which are not in it are included unexecuted. warnings
+    maps shortkeys to texts shown in a warning box at the top of the page."""
     if srcdir.exists():
         shutil.rmtree(srcdir)
     nbdir = srcdir / 'notebooks'
@@ -114,6 +116,13 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
         page = executed.get(sk)
         if page is None:
             page = expand( nb, cfg, 'site', links_markdown(nb,cfg) )
+        if warnings and sk in warnings:
+            #After the title and the links:
+            page['cells'].insert( 2, { 'cell_type' : 'markdown',
+                                       'id' : 'ncnb-warning', 'metadata' : {},
+                                       'source' : ( ':::{warning}\n'
+                                                    + warnings[sk]
+                                                    + '\n:::' ) } )
         #Highlight code as IPython (with magics and shell commands):
         page['metadata']['language_info'] = { 'name' : 'python',
                                               'pygments_lexer' : 'ipython3' }

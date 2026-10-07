@@ -8,6 +8,10 @@ def main( parser ):
     default all notebooks are run.""" )
     parser.add_argument( 'NOTEBOOK', nargs = '*',
                          help = 'Notebooks to run (shortkeys or paths).' )
+    parser.add_argument( '--only-slow', action = 'store_true',
+                         help = """Only run notebooks marked as slow in their
+                         settings cells (the counterpart of --skip-slow, e.g.
+                         for a separate CI job).""" )
     parser.add_argument( '--select', choices = ('all','pip','conda'),
                          default = 'all',
                          help = """Only run notebooks which can be installed
@@ -16,6 +20,8 @@ def main( parser ):
     from .batch import add_batch_args
     add_batch_args( parser )
     args = parser.parse_args()
+    if args.only_slow and args.skip_slow:
+        parser.error('--only-slow and --skip-slow can not be combined')
     run_tests( args )
 
 def run_tests( args ):
@@ -31,6 +37,8 @@ def run_tests( args ):
     jobs = []
     for nb in select_notebooks( args.NOTEBOOK, notebooks ):
         reqs = Requirements( nb.settings, cfg )
+        if args.only_slow and not nb.settings.slow and not args.NOTEBOOK:
+            continue
         if args.skip_slow and nb.settings.slow and not args.NOTEBOOK:
             print(f'Skipping {nb.shortkey} (slow)')
             continue
