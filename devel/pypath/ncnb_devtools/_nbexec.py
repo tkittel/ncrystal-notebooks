@@ -47,9 +47,9 @@ def main():
             print(f'Stopped while running cell {current["index"]+1}, which'
                   ' starts with:\n' + '\n'.join( '    '+e for e in src[:6] ))
         print(f'ERROR: The notebook exceeded the time limit of {limit} seconds'
-              ' (see max_test_time and max_full_time in'
-              ' notebook_settings.toml). Please make it faster (for tests,'
-              ' perhaps with test-parameters).')
+              ' (see the time limits in notebook_settings.toml). Please make'
+              ' it faster (for tests, perhaps with test-parameters), or mark'
+              ' it as slow.')
     if ok:
         #Check that the notebook can be converted to HTML (cf. ncrystal#266):
         from nbconvert import HTMLExporter

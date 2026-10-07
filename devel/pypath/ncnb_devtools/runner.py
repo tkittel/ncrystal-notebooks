@@ -77,4 +77,7 @@ def run_notebook( env, nbfile, limit, logfile ):
     out = re.sub( r'\x1b\[[0-9;]*m', '', out )
     lines = [ e for e in out.strip().splitlines() if e.strip() ]
     msg = '' if rc == 0 else '\n'.join(lines[-25:])
-    return RunResult( rc == 0, dt, msg, output )
+    #Use the time of the execution itself (to which the time limits apply), if
+    #reported:
+    m = re.search( r'^Executed in ([0-9.]+) seconds$', out, re.M )
+    return RunResult( rc == 0, float(m.group(1)) if m else dt, msg, output )

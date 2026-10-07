@@ -69,11 +69,13 @@ Tag a long cell `show-input` to always show it.
 On the website, long text outputs are shown in boxes with a scrollbar.
 
 Notebooks must run reasonably fast, both for a good experience for users and
-to keep testing practical. There are therefore time limits (`max_test_time`
-and `max_full_time` in `notebook_settings.toml`) for running a notebook in
-tests (with its test parameters) and as users run it (when building the
-website). Notebooks taking longer fail. The time of each notebook is shown in
-the summary at the end of `ncnotebookdevtool test`.
+to keep testing practical. There are therefore time limits (in
+`notebook_settings.toml`) for running a notebook in tests (with its test
+parameters) and as users run it (when building the website). Notebooks taking
+longer fail. Notebooks which can not be made fast enough can be marked as slow
+(see above), and then get more time, but fail if they turn out to run in less
+than half the time allowed for other notebooks. The time of each notebook is
+shown in the summary at the end of `ncnotebookdevtool test`.
 
 The available sections, requirements and plugins are defined in
 `notebook_settings.toml` at the top of the repository. A requirement can

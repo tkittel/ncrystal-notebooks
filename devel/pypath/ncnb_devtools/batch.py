@@ -15,8 +15,8 @@ def add_batch_args( parser ):
                          help = 'Number of notebooks to run in parallel.' )
     parser.add_argument( '--time-limit', type = int, metavar = 'SECONDS',
                          help = """Override the time limit for each notebook
-                         (default: max_test_time or max_full_time from
-                         notebook_settings.toml), e.g. for debugging.""" )
+                         (default: from notebook_settings.toml), e.g. for
+                         debugging.""" )
     parser.add_argument( '--workdir', metavar = 'DIR',
                          help = """Directory for run directories and logs
                          (default: a new temporary directory, removed when
@@ -48,10 +48,24 @@ def cleanup_workdir( args, workdir, failed ):
     else:
         shutil.rmtree( workdir, ignore_errors = True )
 
-def time_limit( args, cfg, target ):
+def time_limits( args, cfg, target, slow ):
+    """The maximum and minimum (or None) time for running a notebook."""
     if args.time_limit:
-        return args.time_limit
-    return cfg.max_test_time if target == 'test' else cfg.max_full_time
+        return args.time_limit, None
+    normal = cfg.max_test_time if target == 'test' else cfg.max_full_time
+    if not slow:
+        return normal, None
+    #Slow notebooks get more time, but must also really be slow:
+    return ( cfg.max_test_time_slow if target == 'test'
+             else cfg.max_full_time_slow ), 0.5 * normal
+
+def limits_description( args, cfg, target ):
+    if args.time_limit:
+        return f'{args.time_limit} s'
+    t = target == 'test'
+    normal = cfg.max_test_time if t else cfg.max_full_time
+    slow = cfg.max_test_time_slow if t else cfg.max_full_time_slow
+    return f'{normal} s, or {0.5*normal:g}-{slow} s for slow notebooks'
 
 def run_batch( jobs, args, cfg, workdir, target ):
     """Run the notebooks in jobs (list of (notebook,envkind)), expanded for the
@@ -67,7 +81,7 @@ def run_batch( jobs, args, cfg, workdir, target ):
         nbfile = prepare_rundir( workdir / nb.shortkey, nb.path.name,
                                  expand( nb, cfg, target ) )
         prepared.append( ( nb, env, nbfile,
-                           time_limit( args, cfg, target ) ) )
+                           time_limits( args, cfg, target, nb.settings.slow ) ) )
 
     import threading
     lock = threading.Lock()
@@ -75,13 +89,19 @@ def run_batch( jobs, args, cfg, workdir, target ):
     ntot = len(prepared)
 
     def run( item ):
-        nb, env, nbfile, limit = item
+        nb, env, nbfile, ( limit, minimum ) = item
         with lock:
             counts['started'] += 1
             print(f'Running ({counts["started"]}/{ntot}) {nb.shortkey}'
                   f' ({nb.relpath}) in {env.description}', flush = True)
         res = run_notebook( env, nbfile, limit,
                             workdir / f'{nb.shortkey}.log' )
+        if res.ok and minimum is not None and res.seconds < minimum:
+            res.ok = False
+            res.message = ( f'The notebook is marked as slow, but ran in only'
+                            f' {res.seconds:.0f} seconds (less than'
+                            f' {minimum:g} seconds). Please remove "# slow:'
+                            ' yes" from its settings cell.' )
         with lock:
             counts['done'] += 1
             print(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
@@ -92,10 +112,9 @@ def run_batch( jobs, args, cfg, workdir, target ):
     with ThreadPoolExecutor( max_workers = max(1,args.j) ) as ex:
         return list( ex.map( run, prepared ) )
 
-def print_summary( results, workdir, limit = None ):
+def print_summary( results, workdir, limits = None ):
     """Print summary, and return the number of failures."""
-    print('\nSummary' + ( f' (time limit per notebook: {limit} s):'
-                          if limit else ':' ))
+    print('\nSummary' + ( f' (time limits: {limits}):' if limits else ':' ))
     nfail = 0
     for nb, res in results:
         print(f'  {"OK    " if res.ok else "FAILED"} {res.seconds:6.0f} s'

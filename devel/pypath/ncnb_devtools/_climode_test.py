@@ -23,7 +23,7 @@ def run_tests( args ):
     from .nbsettings import select_notebooks
     from .expand import Requirements
     from .envsetup import env_kind, conda_platform
-    from .batch import ( time_limit, quick_checks, make_workdir, run_batch, print_summary,
+    from .batch import ( limits_description, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
     cfg = load_config()
     notebooks = quick_checks( cfg )
@@ -59,7 +59,7 @@ def run_tests( args ):
     workdir = make_workdir( args )
     results = run_batch( jobs, args, cfg, workdir, 'test' )
     nfail = print_summary( results, workdir,
-                           time_limit( args, cfg, 'test' ) )
+                           limits_description( args, cfg, 'test' ) )
     cleanup_workdir( args, workdir, nfail )
     if nfail:
         raise SystemExit(f'\nERROR: {nfail} of {len(results)} notebooks'
