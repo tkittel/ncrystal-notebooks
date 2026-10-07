@@ -41,6 +41,11 @@ max_test_time_slow = 500
 max_full_time_slow = 900
 min_full_time_slow = 10
 
+# On Windows, the limits for notebooks not marked as slow (max_test_time and
+# max_full_time) are multiplied by this factor, since some things (e.g.
+# compilation of McStas instruments) take much longer there:
+windows_time_factor = 2
+
 # GitHub repository, the branch with the Google Colab versions of the
 # notebooks, and the website:
 github_repo = "mctools/ncrystal-notebooks"

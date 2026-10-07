@@ -48,11 +48,20 @@ def cleanup_workdir( args, workdir, failed ):
     else:
         shutil.rmtree( workdir, ignore_errors = True )
 
+def normal_time_limit( cfg, target ):
+    """The time limit for notebooks not marked as slow (more on Windows, where
+    e.g. compilation is slower)."""
+    import sys
+    normal = cfg.max_test_time if target == 'test' else cfg.max_full_time
+    if sys.platform == 'win32':
+        normal *= cfg.windows_time_factor
+    return normal
+
 def time_limits( args, cfg, target, slow ):
     """The maximum and minimum (or None) time for running a notebook."""
     if args.time_limit:
         return args.time_limit, None
-    normal = cfg.max_test_time if target == 'test' else cfg.max_full_time
+    normal = normal_time_limit( cfg, target )
     if not slow:
         return normal, None
     #Slow notebooks get more time, but full runs must also really be slow (not
@@ -65,7 +74,7 @@ def limits_description( args, cfg, target ):
     if args.time_limit:
         return f'{args.time_limit} s'
     t = target == 'test'
-    normal = cfg.max_test_time if t else cfg.max_full_time
+    normal = f'{normal_time_limit( cfg, target ):g}'
     slow = cfg.max_test_time_slow if t else cfg.max_full_time_slow
     if t:
         return f'{normal} s, or {slow} s for slow notebooks'

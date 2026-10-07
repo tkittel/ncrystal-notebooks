@@ -75,7 +75,8 @@ parameters) and as users run it (when building the website). Notebooks taking
 longer fail. Notebooks should run in less than 20 seconds. Those taking more
 than 25 seconds should be marked as slow (see above), and then get more time,
 but fail if they turn out to run (as users run them) in less than 10
-seconds. The time of each notebook is
+seconds. On Windows, where e.g. compilation is slower, notebooks not marked
+as slow get twice the time. The time of each notebook is
 shown in the summary at the end of `ncnotebookdevtool test`.
 
 The available sections, requirements and plugins are defined in
