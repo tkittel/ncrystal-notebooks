@@ -99,12 +99,8 @@ def _quote( pkgs ):
 def pip_install_cmd( reqs ):
     return 'pip install ' + _quote( reqs.pip_packages + reqs.plugins )
 
-#Packages which users should install under a different name than the one used
-#in our environments (matplotlib-base is matplotlib without a GUI backend):
-_conda_user_names = { 'matplotlib-base' : 'matplotlib' }
-
 def conda_install_cmds( reqs ):
-    pkgs = [ _conda_user_names.get(p,p) for p in reqs.conda_packages ]
+    pkgs = reqs.conda_packages
     #Only conda-forge (never mixed with the "defaults" channel):
     res = [ 'conda install --override-channels -c conda-forge '
             + _quote(pkgs) ]

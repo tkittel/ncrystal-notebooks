@@ -27,7 +27,7 @@ conda = ["ncrystal"]
 [requirements.plot]
 description = "matplotlib"
 pip = ["matplotlib"]
-conda = ["matplotlib-base"]
+conda = ["matplotlib"]
 
 [requirements.openmc]
 description = "OpenMC"

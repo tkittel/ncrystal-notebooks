@@ -115,7 +115,7 @@ conda = ["ncrystal"]
 [requirements.plot]
 description = "matplotlib"
 pip = ["matplotlib", "ipympl"]
-conda = ["matplotlib-base", "ipympl"]
+conda = ["matplotlib", "ipympl"]
 
 [requirements.widgets]
 description = "Jupyter widgets"

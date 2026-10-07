@@ -176,7 +176,7 @@ def test_conda_only_requirement( fakerepo ):
                           + ', openmc\n# plugins: Dummy' )
     reqs = Requirements( s, cfg )
     assert reqs.needs_conda
-    assert reqs.conda_packages == ['ncrystal','matplotlib-base','openmc']
+    assert reqs.conda_packages == ['ncrystal','matplotlib','openmc']
     assert reqs.plugins == ['ncrystal-plugin-Dummy']
 
 def test_select_by_shortkey_and_path( fakerepo ):
