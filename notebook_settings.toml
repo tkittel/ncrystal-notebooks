@@ -163,9 +163,11 @@ conda_platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [requirements.mcstas]
 description = "McStas"
-#McStas compiles with MPI when available (and fails if mpicc is missing). On
-#Windows, conda-forge only has an old placeholder package of openmpi:
-conda = ["mcstas-core", "openmpi; sys_platform != 'win32'"]
+#McStas compiles with MPI by default (and fails if MPI is missing). On Windows
+#this is Microsoft MPI (conda-forge only has an old placeholder package of
+#openmpi there):
+conda = ["mcstas-core", "openmpi; sys_platform != 'win32'",
+         "msmpi; sys_platform == 'win32'"]
 setup = """
 #Let McStas find its resources:
 import os

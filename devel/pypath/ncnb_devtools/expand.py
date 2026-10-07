@@ -59,8 +59,9 @@ class Requirements:
 
     @property
     def conda_packages( self ):
-        """All conda packages (without markers, for instructions)."""
-        return self.conda_packages_for( None )
+        """The conda packages for installation instructions (those for Linux
+        and macOS, the most common platforms)."""
+        return self.conda_packages_for( 'linux-64' )
 
     def conda_packages_for( self, platform ):
         """The conda packages needed on the conda platform."""
