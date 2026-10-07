@@ -1,0 +1,48 @@
+name: utilities_pypi
+
+# Publish the ncrystal-notebook-utilities package (in utilities/) to PyPI. Runs
+# only when started by hand (the "Run workflow" button on the Actions page),
+# after bumping the version in utilities/pyproject.toml.
+#
+# Uses PyPI's trusted publishing, so no token is needed: the project on PyPI
+# lists mctools/ncrystal-notebooks and this workflow (utilities_pypi.yml) as a
+# trusted publisher. In other repositories (e.g. forks), the package is only
+# built.
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    name: Build the package
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.13'
+    - name: Build the source package and the wheel
+      run: |
+        python -m pip install build twine
+        python -m build --outdir dist utilities
+        python -m twine check --strict dist/*
+        ls -l dist
+    - uses: actions/upload-artifact@v7
+      with:
+        name: utilities-dist
+        path: dist/
+
+  publish:
+    name: Publish to PyPI
+    needs: [ build ]
+    if: github.repository == 'mctools/ncrystal-notebooks'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # for trusted publishing
+    steps:
+    - uses: actions/download-artifact@v7
+      with:
+        name: utilities-dist
+        path: dist/
+    - uses: pypa/gh-action-pypi-publish@release/v1
