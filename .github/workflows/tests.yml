@@ -58,7 +58,9 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: failed-pip-${{ matrix.os }}-${{ matrix.python }}
-        path: ${{ runner.temp }}/work/*.log
+        path: |
+          ${{ runner.temp }}/work/*.log
+          ${{ runner.temp }}/work/*/*.executed.ipynb
 
   conda:
     needs: [ checks ]
@@ -90,4 +92,6 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: failed-conda-${{ matrix.os }}
-        path: ${{ runner.temp }}/work/*.log
+        path: |
+          ${{ runner.temp }}/work/*.log
+          ${{ runner.temp }}/work/*/*.executed.ipynb

@@ -21,7 +21,11 @@ def main():
     def remaining_time( cell ):
         #Each cell can use the time left until the deadline:
         return max( 1, int( deadline - time.time() ) + 1 )
+    current = {}
+    def on_cell_execute( cell, cell_index ):
+        current['cell'], current['index'] = cell, cell_index
     client = NotebookClient( nb, timeout_func = remaining_time,
+                             on_cell_execute = on_cell_execute,
                              kernel_name = 'python3',
                              resources = { 'metadata' : { 'path' : '.' } } )
     ok, timed_out = True, False
@@ -38,6 +42,10 @@ def main():
     print(f'Executed in {dt:.1f} seconds')
     if timed_out or dt > limit:
         ok = False
+        if timed_out and current:
+            src = current['cell']['source'].splitlines()
+            print(f'Stopped while running cell {current["index"]+1}, which'
+                  ' starts with:\n' + '\n'.join( '    '+e for e in src[:6] ))
         print(f'ERROR: The notebook exceeded the time limit of {limit} seconds'
               ' (see max_test_time and max_full_time in'
               ' notebook_settings.toml). Please make it faster (for tests,'
