@@ -7,6 +7,10 @@ import tempfile
 def add_batch_args( parser ):
     from .envsetup import add_env_args
     add_env_args( parser )
+    parser.add_argument( '--skip-slow', action = 'store_true',
+                         help = """Skip notebooks marked as slow in their
+                         settings cells (unless given explicitly), e.g. while
+                         debugging.""" )
     parser.add_argument( '-j', type = int, default = 1, metavar = 'N',
                          help = 'Number of notebooks to run in parallel.' )
     parser.add_argument( '--time-limit', type = int, metavar = 'SECONDS',

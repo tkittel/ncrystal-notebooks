@@ -40,8 +40,14 @@ def build_site( args ):
     executed = {}
     nfail = 0
     if not args.no_execute:
+        torun = notebooks
+        if args.skip_slow:
+            torun = [ nb for nb in notebooks if not nb.settings.slow ]
+            for nb in notebooks:
+                if nb.settings.slow:
+                    print(f'Skipping {nb.shortkey} (slow, shown unexecuted)')
         jobs = [ ( nb, env_kind( Requirements( nb.settings, cfg ), args.env ) )
-                 for nb in notebooks ]
+                 for nb in torun ]
         skipped = [ nb.shortkey for nb, k in jobs if k is None ]
         if skipped:
             raise SystemExit('ERROR: Notebooks needing conda can not be run'

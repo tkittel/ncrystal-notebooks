@@ -271,3 +271,15 @@ def test_createnew( fakerepo ):
                 a[i+1] = v
         p = run_tool( *a, check = False )
         assert p.returncode != 0 and err in ( p.stdout + p.stderr )
+
+def test_slow_setting( fakerepo ):
+    f = fakerepo / 'notebooks' / 'one.ipynb'
+    nb = json.loads( f.read_text() )
+    nb['cells'][0]['source'].append('\n# slow: yes')
+    f.write_text( json.dumps(nb) )
+    run_tool( 'precommit' )
+    assert 'Notebook one  [plot, slow]' in run_tool( 'list' ).stdout
+    nb['cells'][0]['source'][-1] = '\n# slow: maybe'
+    f.write_text( json.dumps(nb) )
+    p = run_tool( 'check', check = False )
+    assert p.returncode != 0 and 'slow must be "yes" or "no"' in p.stdout

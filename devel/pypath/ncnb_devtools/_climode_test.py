@@ -30,6 +30,9 @@ def run_tests( args ):
     jobs = []
     for nb in select_notebooks( args.NOTEBOOK, notebooks ):
         reqs = Requirements( nb.settings, cfg )
+        if args.skip_slow and nb.settings.slow and not args.NOTEBOOK:
+            print(f'Skipping {nb.shortkey} (slow)')
+            continue
         if args.select == 'pip' and reqs.needs_conda:
             continue
         if args.select == 'conda' and not reqs.needs_conda:

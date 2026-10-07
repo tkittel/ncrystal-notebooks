@@ -22,6 +22,8 @@ def main( parser ):
             s = nb.settings
             extra = [ r for r in s.requires ] + [ f'plugin:{p}'
                                                  for p in s.plugins ]
+            if s.slow:
+                extra.append('slow')
             req = f'  [{", ".join(extra)}]' if extra else ''
             print(f'    {s.shortkey:<14} {s.title}{req}')
             if args.paths:

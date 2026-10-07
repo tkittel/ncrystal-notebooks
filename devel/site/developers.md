@@ -48,6 +48,9 @@ The keys are:
   imported for it, e.g. because it installs plugins before importing NCrystal.
 * `max-line-length`: Maximum length of lines in code cells, if the default (120
   characters) is not suitable, e.g. for embedded data.
+* `slow`: Set to `yes` for notebooks which take long to run, even with their
+  test parameters. They can then be skipped with `--skip-slow` (e.g. while
+  debugging other things).
 * `test-parameters`: Values used when testing, e.g. to reduce statistics in
   notebooks which take a long time to run (`# test-parameters: n = 1000; m = 2`).
   The notebook must then put these numbers in a single code cell, tagged
