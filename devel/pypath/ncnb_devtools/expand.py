@@ -93,8 +93,13 @@ def _quote( pkgs ):
 def pip_install_cmd( reqs ):
     return 'pip install ' + _quote( reqs.pip_packages + reqs.plugins )
 
+#Packages which users should install under a different name than the one used
+#in our environments (matplotlib-base is matplotlib without a GUI backend):
+_conda_user_names = { 'matplotlib-base' : 'matplotlib' }
+
 def conda_install_cmds( reqs ):
-    res = [ 'conda install -c conda-forge ' + _quote(reqs.conda_packages) ]
+    pkgs = [ _conda_user_names.get(p,p) for p in reqs.conda_packages ]
+    res = [ 'conda install -c conda-forge ' + _quote(pkgs) ]
     extra = reqs.conda_pip_packages + reqs.plugins
     if extra:
         res.append( 'pip install ' + _quote(extra) )

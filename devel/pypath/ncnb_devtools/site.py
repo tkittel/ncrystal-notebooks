@@ -44,6 +44,7 @@ def links_markdown( nb, cfg ):
 CONF_PY = '''
 project = {project!r}
 html_title = {project!r}
+author = 'The NCrystal developers'
 extensions = [ 'myst_nb' ]
 nb_execution_mode = 'off'
 myst_enable_extensions = [ 'dollarmath', 'amsmath', 'colon_fence' ]
@@ -53,11 +54,27 @@ html_theme_options = {{
     'use_repository_button' : True,
     'path_to_docs' : '',
     'show_toc_level' : 2,
+    #No table of contents to the right of the front page:
+    'secondary_sidebar_items' : {{ '**' : [ 'page-toc' ], 'index' : [] }},
 }}
 html_extra_path = [ '_extra' ]
-exclude_patterns = [ '_build', '_extra', '**.ipynb_checkpoints' ]
+html_static_path = [ '_static' ]
+html_css_files = [ 'ncnb.css' ]
+exclude_patterns = [ '_build', '_extra', '_static', '**.ipynb_checkpoints' ]
 suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
                      'misc.highlighting_failure' ]
+'''
+
+#Compact layout of the lists of notebooks on the front page:
+CSS = '''
+.bd-article section:has(> ul.ncnb-list) > h2 {
+  font-size: 1.45rem; margin-top: 1.1em !important;
+  margin-bottom: 0.15em !important; }
+.bd-article section:has(> ul.ncnb-list) > .toctree-wrapper { display: none; }
+p.ncnb-section-desc { margin: 0 0 0.25em 0 !important; font-size: 0.9em;
+                      opacity: 0.8; }
+ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
+ul.ncnb-list li { margin: 0.05em 0 !important; }
 '''
 
 def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
@@ -76,6 +93,8 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
         project = 'NCrystal notebooks',
         repo_url = f'https://github.com/{cfg.github_repo}' ),
         encoding = 'utf-8' )
+    ( srcdir / '_static' ).mkdir()
+    ( srcdir / '_static' / 'ncnb.css' ).write_text( CSS, encoding = 'utf-8' )
     shutil.copy( reporoot() / 'devel' / 'site' / 'developers.md',
                  srcdir / 'developers.md' )
 
@@ -110,19 +129,17 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
         if not nbs:
             continue
         lines += [ f'## {section.title}', '' ]
+        #Raw HTML, for a compact layout (see CSS above):
+        html = []
         if section.description:
-            lines += [ section.description, '' ]
+            html.append( '<p class="ncnb-section-desc">'
+                         + htmllib.escape(section.description) + '</p>' )
+        html.append( '<ul class="ncnb-list">' )
         for nb in nbs:
-            reqs = Requirements( nb.settings, cfg )
-            extra = [ r.description for r in reqs.reqs
-                      if r.key not in ('ncrystal',) ]
-            extra += [ f'{p} plugin' for p in nb.settings.plugins ]
-            note = ( ' <span class="ncnb-reqs">(needs '
-                     + htmllib.escape(', '.join(extra)) + ')</span>'
-                     ) if extra else ''
-            lines.append( f'* [{nb.settings.title}](notebooks/'
-                          f'{nb.settings.shortkey}.ipynb){note}' )
-        lines.append('')
+            html.append( f'<li><a href="notebooks/{nb.settings.shortkey}.html">'
+                         + htmllib.escape(nb.settings.title) + '</a></li>' )
+        html.append( '</ul>' )
+        lines += [ '\n'.join(html), '' ]
         lines += [ '```{toctree}', ':hidden:', f':caption: {section.title}',
                    '' ]
         lines += [ f'notebooks/{nb.settings.shortkey}' for nb in nbs ]
