@@ -207,6 +207,8 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
         pkgsdir = cache_dir() / 'conda-pkgs'
         pkgsdir.mkdir( parents = True, exist_ok = True )
         cenv['CONDA_PKGS_DIRS'] = str(pkgsdir)
+        #Only conda-forge (like "nodefaults" plus "conda-forge" in an
+        #environment file):
         _run( [ tool, 'create', '-y', '-p', d, '--override-channels',
                 '-c', 'conda-forge' ] + cpkgs, env = cenv, log = log )
         if ppkgs:

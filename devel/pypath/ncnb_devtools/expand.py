@@ -105,7 +105,9 @@ _conda_user_names = { 'matplotlib-base' : 'matplotlib' }
 
 def conda_install_cmds( reqs ):
     pkgs = [ _conda_user_names.get(p,p) for p in reqs.conda_packages ]
-    res = [ 'conda install -c conda-forge ' + _quote(pkgs) ]
+    #Only conda-forge (never mixed with the "defaults" channel):
+    res = [ 'conda install --override-channels -c conda-forge '
+            + _quote(pkgs) ]
     extra = reqs.conda_pip_packages + reqs.plugins
     if extra:
         res.append( 'pip install ' + _quote(extra) )
@@ -171,7 +173,7 @@ def colab_install_cells( reqs ):
               'import condacolab',
               'condacolab.install_miniforge()' ]
     second = [ '#Install software on Google Colab:',
-               '!mamba install -y -q -c conda-forge '
+               '!mamba install -y -q --override-channels -c conda-forge '
                + _quote(reqs.conda_packages) ]
     extra = reqs.conda_pip_packages + reqs.plugins
     if extra:
