@@ -40,7 +40,8 @@ jobs:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-v1-${{ runner.os }}
     #TEMPORARY: notebooks marked as slow are skipped during the current period
-    #of development. Remove --skip-slow below to run them again.
+    #of development (their pages show a warning). Remove --skip-slow below to
+    #run them again.
     - name: Run notebooks and build website
       env:
         NCNOTEBOOKDEVTOOL_GITHUB_REPO: ${{ github.repository }}

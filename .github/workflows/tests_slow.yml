@@ -1,0 +1,75 @@
+name: tests_slow
+
+# Runs the notebooks marked as slow (which the tests workflow skips), so a pull
+# request can be merged on the basis of the tests workflow alone if needed.
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 11 * * 2'  # 11:30 every Tuesday
+  workflow_dispatch:
+
+jobs:
+
+  pip:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python: '3.13' }
+          - { os: macos-latest,  python: '3.12' }
+          - { os: windows-latest, python: '3.12' }
+    name: Slow notebooks with pip (${{ matrix.os }}, python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Run slow notebooks installable with pip
+      run: python devel/bin/ncnotebookdevtool test --select pip --env venv --only-slow -j 3 --workdir "${{ runner.temp }}/work"
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-slow-pip-${{ matrix.os }}-${{ matrix.python }}
+        path: |
+          ${{ runner.temp }}/work/*.log
+          ${{ runner.temp }}/work/*/*.executed.ipynb
+
+  #Only on Linux, since the slow notebooks needing conda all need OpenMC, which
+  #conda-forge does not have for the macOS (arm64) and Windows runners:
+  conda:
+    name: Slow notebooks with conda (ubuntu-latest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: conda-incubator/setup-miniconda@v4
+      with:
+        miniforge-version: latest
+        channels: conda-forge
+        conda-remove-defaults: "true"
+    - name: Cache data downloaded by notebooks
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/ncnbdata
+        key: ncnb-data-v1-${{ runner.os }}
+    - name: Run slow notebooks needing conda
+      env:
+        NCRYSTAL_NOTEBOOK_DATA_CACHE: ${{ runner.temp }}/ncnbdata
+      run: python devel/bin/ncnotebookdevtool test --select conda --env conda --only-slow -j 2 --workdir "${{ runner.temp }}/work"
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-slow-conda-ubuntu-latest
+        path: |
+          ${{ runner.temp }}/work/*.log
+          ${{ runner.temp }}/work/*/*.executed.ipynb
