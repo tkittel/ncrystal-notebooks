@@ -6,12 +6,16 @@ def main( parser ):
     non-standard metadata from all notebooks, writes them in a canonical JSON
     format (which keeps diffs readable), and runs the same quick checks as the
     "check" mode. Notebooks are not run.""" )
-    parser.parse_args()
+    parser.add_argument( 'NOTEBOOK', nargs = '*',
+                         help = """Notebooks (shortkeys or paths; default:
+                         all).""" )
+    args = parser.parse_args()
     from .config import load_config
-    from .nbsettings import find_notebooks, split_settings_source
+    from .nbsettings import find_notebooks, select_notebooks
+    from .nbsettings import split_settings_source
     from .nbfile import canonical_text, source_str, split_source
     from .checks import check_all, report
-    for nb in find_notebooks():
+    for nb in select_notebooks( args.NOTEBOOK, find_notebooks() ):
         if nb.nb is None:
             continue
         cells = nb.nb['cells']
@@ -24,7 +28,12 @@ def main( parser ):
         if nb.path.read_text(encoding='utf-8') != text:
             nb.path.write_text(text,encoding='utf-8')
             print(f'Updated {nb.relpath}')
-    notebooks = find_notebooks()
-    if not report( check_all( notebooks, load_config() ) ):
+    allnbs = find_notebooks()
+    notebooks = select_notebooks( args.NOTEBOOK, allnbs )
+    selected = set( nb.relpath for nb in notebooks )
+    problems = [ ( r, p ) for r, p in check_all( allnbs, load_config() )
+                 if r in selected ]
+    if not report( problems ):
         raise SystemExit(1)
-    print(f'All {len(notebooks)} notebooks OK')
+    n = len(notebooks)
+    print(f'All {n} notebook{"s" if n != 1 else ""} OK')

@@ -4,17 +4,22 @@ def short_description():
 def main( parser ):
     parser.init( short_description() + """. Shows shortkeys, titles and
     requirements, as declared in the settings cells of the notebooks.""" )
+    parser.add_argument( 'NOTEBOOK', nargs = '*',
+                         help = """Notebooks (shortkeys or paths; default:
+                         all).""" )
     parser.add_argument( '--paths', action='store_true',
                          help='Also show the paths of the notebooks.' )
     args = parser.parse_args()
     from .config import load_config
-    from .nbsettings import find_notebooks
+    from .nbsettings import find_notebooks, select_notebooks
     cfg = load_config()
-    notebooks = find_notebooks()
+    notebooks = select_notebooks( args.NOTEBOOK, find_notebooks() )
     nshown = 0
     for section in cfg.sections:
         nbs = [ nb for nb in notebooks
                 if nb.settings and nb.settings.section == section.key ]
+        if not nbs and args.NOTEBOOK:
+            continue
         print(f'{section.title} [{section.key}]:')
         if not nbs:
             print('    (no notebooks)')

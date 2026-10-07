@@ -287,3 +287,11 @@ def test_slow_setting( fakerepo ):
 def test_only_slow_and_skip_slow_conflict( fakerepo ):
     p = run_tool( 'test', '--only-slow', '--skip-slow', check = False )
     assert p.returncode != 0 and 'can not be combined' in p.stderr
+
+def test_notebook_selection_in_quick_modes( fakerepo ):
+    assert 'All 1 notebook OK' in run_tool( 'check', 'one' ).stdout
+    assert 'All 1 notebook OK' in run_tool( 'precommit', 'two' ).stdout
+    out = run_tool( 'list', 'two' ).stdout
+    assert 'Notebook two' in out and 'Notebook one' not in out
+    p = run_tool( 'check', 'nosuchkey', check = False )
+    assert p.returncode != 0 and 'Unknown notebook' in ( p.stdout + p.stderr )

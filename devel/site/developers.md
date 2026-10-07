@@ -145,9 +145,10 @@ ncnotebookdevtool test [SHORTKEY ...]
 Each notebook runs in a fresh directory, with a fresh kernel, in an
 environment providing its requirements: a venv for notebooks which can be
 installed with pip, and a conda environment for the others. All notebooks are
-run if none are given. Useful options are `-j N` to run notebooks in parallel,
-`--env` to choose the kind of environments, and `--select pip` or
-`--select conda`.
+run if none are given (notebooks are given by their shortkeys or paths, which
+also works with the `site`, `check`, `precommit` and `list` modes). Useful
+options are `-j N` to run notebooks in parallel, `--env` to choose the kind of
+environments, and `--select pip` or `--select conda`.
 
 To test notebooks with the NCrystal code in a local clone of the NCrystal
 repository (instead of the released NCrystal), add
@@ -168,10 +169,10 @@ ncnotebookdevtool site -o /some/dir
 
 (add `--no-execute` for a quick build without running the notebooks). To
 quickly see how your own notebook will look on the website, build a website
-with just that notebook, by giving its shortkey (or path):
+with just that notebook, by giving its shortkey:
 
 ```
-ncnotebookdevtool site -o /some/dir mykey
+ncnotebookdevtool site -o /some/dir SHORTKEY
 ```
 
 and open `/some/dir/html/index.html` in a browser.
