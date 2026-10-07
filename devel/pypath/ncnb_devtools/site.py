@@ -48,6 +48,7 @@ author = 'The NCrystal developers'
 extensions = [ 'myst_nb' ]
 nb_execution_mode = 'off'
 myst_enable_extensions = [ 'dollarmath', 'amsmath', 'colon_fence' ]
+myst_heading_anchors = 3
 html_theme = 'sphinx_book_theme'
 html_theme_options = {{
     'repository_url' : {repo_url!r},
@@ -88,6 +89,57 @@ ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
 ul.ncnb-list li { margin: 0.05em 0 !important; }
 '''
 
+#Line in developers.md replaced by tables of what notebook_settings.toml
+#defines:
+SETTINGS_TABLES_MARKER = '<!-- ncnotebookdevtool: settings tables -->'
+
+_platform_names = { 'win-64' : 'Windows',
+                    'osx-arm64' : 'macOS with Apple Silicon',
+                    'osx-64' : 'macOS with Intel',
+                    'linux-aarch64' : 'Linux on ARM',
+                    'linux-64' : 'Linux on x86-64' }
+
+def _conda_entry_markdown( entry ):
+    #A conda package entry, with a platform marker (if any) in words:
+    name, _, marker = entry.partition(';')
+    marker = ' '.join( marker.split() ).replace('"',"'")
+    words = { "sys_platform != 'win32'" : ' (not on Windows)',
+              "sys_platform == 'win32'" : ' (on Windows)' }
+    note = words.get( marker, f' ({marker})' if marker else '' )
+    return f'`{name.strip()}`{note}'
+
+def settings_tables_markdown( cfg ):
+    """Markdown tables of the sections, requirements and plugins available
+    in notebook_settings.toml."""
+    def code( items ):
+        return ', '.join( f'`{e}`' for e in items ) or '–'
+    out = [ '**Requirements** (for `requires`):', '',
+            '| Name | Provides | With pip | With conda |',
+            '|---|---|---|---|' ]
+    for key, r in cfg.requirements.items():
+        if key == 'ncrystal':
+            continue#always included
+        pip = code( r.pip ) if r.pip_available else 'no'
+        conda = ', '.join( [ _conda_entry_markdown( e ) for e in r.conda ]
+                           + [ f'`{e}` (with pip)' for e in r.conda_pip ] )
+        if r.conda_platforms:
+            missing = [ name for p, name in _platform_names.items()
+                        if p not in r.conda_platforms ]
+            if missing:
+                conda += ' (not on ' + ', '.join( missing ) + ')'
+        out.append( f'| `{key}` | {r.description} | {pip} | {conda} |' )
+    out += [ '', '**Plugins** (for `plugins`):', '',
+             '| Name | Installed from |', '|---|---|' ]
+    for key, spec in cfg.plugins.items():
+        note = ( ' (built from source, which currently fails on Windows)'
+                 if 'git+' in spec else '' )
+        out.append( f'| `{key}` | `{spec}`{note} |' )
+    out += [ '', '**Sections** (for `section`):', '',
+             '| Name | Section on the website |', '|---|---|' ]
+    for s in cfg.sections:
+        out.append( f'| `{s.key}` | {s.title} |' )
+    return '\n'.join(out)
+
 def write_sources( notebooks, executed, cfg, srcdir, colabdir,
                    warnings = None ):
     """Write the Sphinx sources. executed maps shortkeys to executed notebooks
@@ -108,8 +160,11 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
         encoding = 'utf-8' )
     ( srcdir / '_static' ).mkdir()
     ( srcdir / '_static' / 'ncnb.css' ).write_text( CSS, encoding = 'utf-8' )
-    shutil.copy( reporoot() / 'devel' / 'site' / 'developers.md',
-                 srcdir / 'developers.md' )
+    devdoc = ( reporoot() / 'devel' / 'site' / 'developers.md'
+               ).read_text( encoding = 'utf-8' )
+    ( srcdir / 'developers.md' ).write_text(
+        devdoc.replace( SETTINGS_TABLES_MARKER, settings_tables_markdown(cfg) ),
+        encoding = 'utf-8' )
 
     for nb in notebooks:
         sk = nb.settings.shortkey

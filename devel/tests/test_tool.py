@@ -295,3 +295,14 @@ def test_notebook_selection_in_quick_modes( fakerepo ):
     assert 'Notebook two' in out and 'Notebook one' not in out
     p = run_tool( 'check', 'nosuchkey', check = False )
     assert p.returncode != 0 and 'Unknown notebook' in ( p.stdout + p.stderr )
+
+def test_settings_tables_in_developer_docs():
+    from ncnb_devtools.config import Config
+    from ncnb_devtools.site import settings_tables_markdown, SETTINGS_TABLES_MARKER
+    doc = ( REPO / 'devel' / 'site' / 'developers.md' ).read_text()
+    assert doc.count( SETTINGS_TABLES_MARKER ) == 1
+    cfg = Config( REPO / 'notebook_settings.toml' )
+    md = settings_tables_markdown( cfg )
+    for key in list(cfg.requirements) + list(cfg.plugins):
+        if key != 'ncrystal':
+            assert f'| `{key}` |' in md

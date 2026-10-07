@@ -40,10 +40,14 @@ The keys are:
   notebook).
 * `shortkey`: A short unique key, of at most 14 lowercase letters or digits.
   It is used in URLs (so it should never change) and on the command line.
-* `section`: The section of the website in which the notebook is listed.
+* `section`: The section of the website in which the notebook is listed (one
+  of the [available sections](#available-requirements-and-plugins)).
 * `requires`: What the notebook needs besides NCrystal, e.g. `plot` for
-  matplotlib, `cif` for CIF file support, or `openmc` for OpenMC.
-* `plugins`: NCrystal plugins needed by the notebook.
+  matplotlib or `openmc` for OpenMC. These are names of requirements defined
+  for all notebooks, not package names, and never with versions: see the
+  [available requirements](#available-requirements-and-plugins).
+* `plugins`: NCrystal plugins needed by the notebook, likewise by names
+  defined for all notebooks (see the [available plugins](#available-requirements-and-plugins)).
 * `import-ncrystal`: Set to `no` if the notebook should not have NCrystal
   imported for it, e.g. because it installs plugins before importing NCrystal.
 * `max-line-length`: Maximum length of lines in code cells, if the default (120
@@ -81,17 +85,29 @@ seconds. On Windows, where e.g. compilation is slower, notebooks not marked
 as slow get twice the time. The time of each notebook is
 shown in the summary at the end of `ncnotebookdevtool test`.
 
-The available sections, requirements and plugins are defined in
-`notebook_settings.toml` at the top of the repository. A requirement can
-provide packages for pip and conda, and setup code. Requirements without pip
-packages (like `openmc`) are only available with conda.
-
 Do not add code for installing software, setting up plots, or importing
 NCrystal: the tool generates this from the settings cell, in different
 versions for different purposes (running the notebook in tests, the website,
 the downloadable notebooks for pip and conda, and Google Colab). So when a
 better way of installing something on Google Colab is found, only the tool
 needs to change, not every notebook.
+
+## Available requirements and plugins
+
+The names used for `requires`, `plugins` and `section` in the settings cell
+are not package names. They are defined in `notebook_settings.toml` at the top
+of the repository, which says which packages (and if needed which versions)
+each requirement and plugin installs, with pip and with conda, and any setup
+code it needs. So versions are never given in the settings cell: if a notebook
+needs a newer version of a package, or a requirement or plugin which is not
+defined yet, change or add it in `notebook_settings.toml` (all notebooks using
+it then get the change). Requirements which can not be installed with pip
+(like `openmc`) are only available with conda, and notebooks needing them are
+tested in conda environments only.
+
+These are the current definitions:
+
+<!-- ncnotebookdevtool: settings tables -->
 
 ## Editing a notebook
 
