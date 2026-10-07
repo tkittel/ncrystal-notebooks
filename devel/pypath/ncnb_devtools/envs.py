@@ -59,11 +59,27 @@ def _conda_layout( d ):
 class EnvError(RuntimeError):
     pass
 
+#Time limit for commands (e.g. installations). Installations should take at
+#most a few minutes, unless something is compiled from source unexpectedly:
+COMMAND_TIME_LIMIT = 1200
+
 def _run( cmd, *, env = None, log = None, cwd = None ):
     """Run a command, failing with the output if it fails."""
-    p = subprocess.run( [str(e) for e in cmd], env = env, cwd = cwd,
-                        stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
-                        text = True, encoding = 'utf-8', errors = 'replace' )
+    try:
+        p = subprocess.run( [str(e) for e in cmd], env = env, cwd = cwd,
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.STDOUT, text = True,
+                            encoding = 'utf-8', errors = 'replace',
+                            timeout = COMMAND_TIME_LIMIT )
+    except subprocess.TimeoutExpired as e:
+        out = e.stdout or ''
+        out = out.decode('utf-8','replace') if isinstance(out,bytes) else out
+        if log is not None:
+            with open(log,'a',encoding='utf-8') as fh:
+                fh.write('$> ' + ' '.join(str(e) for e in cmd) + '\n' + out)
+        raise EnvError( f'Command took more than {COMMAND_TIME_LIMIT} seconds'
+                        ' (perhaps something was compiled from source): '
+                        + ' '.join(str(e) for e in cmd) + '\n' + out[-3000:] )
     if log is not None:
         with open(log,'a',encoding='utf-8') as fh:
             fh.write('$> ' + ' '.join(str(e) for e in cmd) + '\n')
@@ -103,6 +119,10 @@ class Env:
                                        + [ env.get('PATH','') ] )
         #Output of Python processes (e.g. pip) is read as UTF-8:
         env['PYTHONIOENCODING'] = 'utf-8'
+        #Never compile the optional C++ extension of endf-parserpy, which can
+        #take very long when no binary wheel is used (cf.
+        #https://github.com/IAEA-NDS/endf-parserpy/issues/42):
+        env.setdefault( 'INSTALL_ENDF_PARSERPY_CPP', 'no' )
         for k in ('PYTHONPATH','PYTHONHOME','VIRTUAL_ENV'):
             env.pop(k,None)
         if self.conda_prefix:
