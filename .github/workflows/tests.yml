@@ -54,7 +54,7 @@ jobs:
     #TEMPORARY: notebooks marked as slow are skipped during the current period
     #of development. Remove --skip-slow below to run them again.
     - name: Run notebooks installable with pip
-      run: python devel/bin/ncnotebookdevtool test --select pip --env venv --skip-slow -j 3 --workdir ${{ runner.temp }}/work
+      run: python devel/bin/ncnotebookdevtool test --select pip --env venv --skip-slow -j 3 --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
       uses: actions/upload-artifact@v7
@@ -90,7 +90,7 @@ jobs:
     - name: Run notebooks needing conda
       env:
         NCRYSTAL_NOTEBOOK_DATA_CACHE: ${{ runner.temp }}/ncnbdata
-      run: python devel/bin/ncnotebookdevtool test --select conda --env conda --skip-slow -j 2 --workdir ${{ runner.temp }}/work
+      run: python devel/bin/ncnotebookdevtool test --select conda --env conda --skip-slow -j 2 --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
       uses: actions/upload-artifact@v7

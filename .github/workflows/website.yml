@@ -43,7 +43,7 @@ jobs:
       env:
         NCNOTEBOOKDEVTOOL_GITHUB_REPO: ${{ github.repository }}
         NCRYSTAL_NOTEBOOK_DATA_CACHE: ${{ runner.temp }}/ncnbdata
-      run: ./devel/bin/ncnotebookdevtool site -j 3 --skip-slow -o ${{ runner.temp }}/site --workdir ${{ runner.temp }}/work
+      run: ./devel/bin/ncnotebookdevtool site -j 3 --skip-slow -o "${{ runner.temp }}/site" --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
       uses: actions/upload-artifact@v7
@@ -58,7 +58,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         set -eux
-        cd ${{ runner.temp }}/site/colab
+        cd "${{ runner.temp }}/site/colab"
         printf '%s\n' "Versions of the notebooks for Google Colab, generated from" \
           "${GITHUB_SHA} by the website workflow (do not edit)." > README.md
         git init -q -b googlecolab
