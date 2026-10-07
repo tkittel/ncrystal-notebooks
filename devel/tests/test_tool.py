@@ -13,7 +13,8 @@ def test_repository_notebooks_pass_check( monkeypatch ):
 
 def test_usage():
     p = run_tool()
-    for mode in ('check','precommit','list','launch','test','site','expand'):
+    for mode in ('check','precommit','list','launch','test','site','expand',
+                 'createnew'):
         assert f' {mode} ' in p.stdout
 
 def test_canonical_form_is_idempotent( fakerepo ):
@@ -245,3 +246,28 @@ def test_hidden_input( fakerepo ):
     for target in ('test','launch'):
         assert not any( c['metadata'].get('jupyter')
                         for c in expand( nbobj, cfg, target )['cells'] )
+
+def test_createnew( fakerepo ):
+    args = [ 'createnew', '--title', 'A new notebook', '--shortkey', 'newnb',
+             '--section', 'basics', '--requires', 'plot', '--plugins', 'none' ]
+    p = run_tool( *args )
+    assert 'launch newnb' in p.stdout
+    f = fakerepo / 'notebooks' / 'newnb' / 'newnb.ipynb'
+    assert f.is_file()
+    assert 'notebooks OK' in run_tool( 'check' ).stdout
+    assert 'newnb          A new notebook' in run_tool( 'list' ).stdout
+    #Errors: existing shortkey, unknown section, missing option:
+    for change, err in [ ( {}, 'already used' ),
+                         ( { '--shortkey' : 'other', '--title' : 'Other',
+                             '--section' : 'nosuch' }, 'Unknown section' ),
+                         ( { '--shortkey' : 'other', '--title' : None },
+                           'provide the --title option' ) ]:
+        a = list(args)
+        for k, v in change.items():
+            i = a.index(k)
+            if v is None:
+                del a[i:i+2]
+            else:
+                a[i+1] = v
+        p = run_tool( *a, check = False )
+        assert p.returncode != 0 and err in ( p.stdout + p.stderr )

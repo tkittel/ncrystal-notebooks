@@ -61,4 +61,5 @@ def run_tests( args ):
     if nfail:
         raise SystemExit(f'\nERROR: {nfail} of {len(results)} notebooks'
                          ' failed')
-    print(f'\nAll {len(results)} notebooks OK')
+    n = len(results)
+    print(f'\nAll {n} notebook{"s" if n != 1 else ""} OK')

@@ -100,9 +100,16 @@ terminal. The notebook is then written back into the repository, with the
 settings cell restored and outputs removed, and the previous version is kept
 as `NOTEBOOK.ipynb.orig`.
 
-To add a new notebook, create it in the right place under `notebooks/` with a
-settings cell as its first cell (copy one from another notebook), and use
-`launch` to edit it.
+To add a new notebook, run:
+
+```
+ncnotebookdevtool createnew
+```
+
+This asks for the title, shortkey, section, requirements and plugins of the
+notebook, creates it with its settings cell (by default as
+`notebooks/SHORTKEY/SHORTKEY.ipynb`), and tells you how to `launch` it for
+editing.
 
 ## Before committing
 
