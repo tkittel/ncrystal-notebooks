@@ -1,0 +1,163 @@
+################################################################################
+#                                                                              #
+# Settings for the NCrystal notebooks, used by devel/bin/ncnotebookdevtool.    #
+#                                                                              #
+# Each notebook declares its title, shortkey, section and requirements in its  #
+# first cell (the "settings cell"), using the sections and requirements        #
+# defined here. The tool turns this into the actual installation and setup    #
+# code needed in a given context (testing, Google Colab, downloads, ...).      #
+#                                                                              #
+################################################################################
+
+[general]
+
+# Minimum NCrystal version, checked when the notebooks run:
+ncrystal_min_version = "4.2.13"
+
+# Maximum length of lines in code cells (a notebook can declare a different
+# value in its settings cell):
+max_line_length = 120
+
+# Default timeout (in seconds) for running a single notebook (a notebook can
+# declare a different value in its settings cell):
+timeout = 1800
+
+# GitHub repository, the branch with the Google Colab versions of the
+# notebooks, and the website:
+github_repo = "mctools/ncrystal-notebooks"
+colab_branch = "googlecolab"
+website_url = "https://mctools.github.io/ncrystal-notebooks"
+
+################################################################################
+# Sections, in the order they are shown on the website. Each notebook declares
+# the key of its section in its settings cell.
+
+[[sections]]
+key = "basics"
+title = "Basic introduction to NCrystal"
+description = """Start here, to get a solid foundation and learn about the \
+basic NCrystal objects and what they provide."""
+
+[[sections]]
+key = "materials"
+title = "Creating new materials"
+description = """For people wishing to create new material definitions, from \
+the basic ingredients to crystal structures and phonons."""
+
+[[sections]]
+key = "misc"
+title = "Miscellaneous"
+description = "Notebooks about specific features and applications."
+
+[[sections]]
+key = "nd2025"
+title = "Contributed: ND2025 conference"
+description = """Notebooks from the International Conference on Nuclear Data \
+for Science and Technology (ND2025)."""
+
+[[sections]]
+key = "neuwave12"
+title = "Contributed: NEUWAVE-12 workshop"
+description = "Exercises from the NEUWAVE-12 workshop."
+
+################################################################################
+# Requirements, which notebooks declare in their settings cell (NCrystal itself
+# is always required). The fields are:
+#
+#   description : short description (shown on the website and in listings).
+#   pip         : packages to install with pip.
+#   conda       : packages to install with conda (from conda-forge).
+#   conda_pip   : packages to install with pip, also in conda environments
+#                 (e.g. packages not available on conda-forge).
+#   local       : packages which, when testing or developing, are installed
+#                 from a directory in this repository instead.
+#   setup       : Python code added to the setup of the notebook.
+#   colab_setup : Python code added to the setup of the notebook on Google
+#                 Colab only.
+#
+# A requirement without "pip" packages is only available with conda, and
+# notebooks needing it are therefore only tested in conda environments.
+
+[requirements.ncrystal]
+description = "NCrystal"
+pip = ["ncrystal"]
+conda = ["ncrystal"]
+
+[requirements.plot]
+description = "matplotlib"
+pip = ["matplotlib", "ipympl"]
+conda = ["matplotlib-base", "ipympl"]
+
+[requirements.widgets]
+description = "Jupyter widgets"
+pip = ["ipywidgets"]
+conda = ["ipywidgets"]
+
+[requirements.cif]
+description = "CIF file support (gemmi, spglib, ASE)"
+pip = ["gemmi", "spglib", "ase"]
+conda = ["gemmi", "spglib", "ase"]
+colab_setup = """
+#Avoid warnings later on Google Colab (cf. mctools/ncrystal#192):
+import gemmi
+import spglib
+"""
+
+[requirements.endf]
+description = "ENDF support (endf-parserpy)"
+pip = ["endf-parserpy"]
+conda = ["endf-parserpy"]
+
+[requirements.pandas]
+description = "pandas"
+pip = ["pandas"]
+conda = ["pandas"]
+
+[requirements.tqdm]
+description = "tqdm"
+pip = ["tqdm"]
+conda = ["tqdm"]
+
+[requirements.utils]
+description = "NCrystal notebook utilities"
+pip = ["ncrystal-notebook-utilities", "requests"]
+conda = ["requests"]
+conda_pip = ["ncrystal-notebook-utilities"]
+local = { ncrystal-notebook-utilities = "utilities" }
+
+[requirements.openmc]
+description = "OpenMC"
+conda = ["openmc"]
+
+[requirements.njoy]
+description = "NJOY2016"
+conda = ["njoy2016"]
+
+[requirements.mcstas]
+description = "McStas"
+conda = ["mcstas-core"]
+setup = """
+#Let McStas find its resources:
+import os
+import shutil
+import subprocess
+if 'MCSTAS' not in os.environ:
+    os.environ['MCSTAS'] = subprocess.run(
+        ['mcrun','--showcfg=resourcedir'], capture_output=True, check=True
+    ).stdout.decode().strip()
+"""
+colab_setup = """
+import pathlib
+os.environ['CONDA_PREFIX'] = str(pathlib.Path(shutil.which('nctool')).parent.parent)
+"""
+
+################################################################################
+# NCrystal plugins, which notebooks declare in the "plugins" line of their
+# settings cell. The value is the pip requirement used to install the plugin
+# (also in conda environments). They are installed before NCrystal is imported,
+# so NCrystal finds them.
+
+[plugins]
+CrysText = "ncrystal-plugin-CrysText @ git+https://github.com/highness-eu/ncplugin-CrysText"
+CrysExtn = "ncrystal-plugin-CrysExtn @ git+https://github.com/XuShuqi7/ncplugin-CrysExtn"
+WaterData = "ncrystal-plugin-WaterData"
