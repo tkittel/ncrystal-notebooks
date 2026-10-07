@@ -5,6 +5,27 @@ from .dirs import settings_file
 class ConfigError(RuntimeError):
     pass
 
+_marker_re = __import__('re').compile(
+    r'''^\s*sys_platform\s*(==|!=)\s*['"]([a-z0-9]+)['"]\s*$''' )
+
+def conda_package_name( entry, platform ):
+    """The package name of a conda package entry, which can have a marker
+    (e.g. "openmpi; sys_platform != 'win32'"). Returns None if the marker
+    excludes the conda platform (e.g. "win-64"), and the name without marker if
+    platform is None."""
+    name, _, marker = entry.partition(';')
+    name = name.strip()
+    if not marker.strip() or platform is None:
+        return name
+    m = _marker_re.match(marker)
+    if not m:
+        raise ConfigError(f'unsupported marker in conda package "{entry}"'
+                          ' (supported: sys_platform == or != a value)')
+    sys_platform = { 'linux' : 'linux', 'osx' : 'darwin',
+                     'win' : 'win32' }.get( platform.split('-')[0] )
+    return name if ( ( sys_platform == m.group(2) )
+                     == ( m.group(1) == '==' ) ) else None
+
 class Requirement:
     def __init__( self, key, data ):
         known = { 'description', 'pip', 'conda', 'conda_pip', 'local',
@@ -17,6 +38,8 @@ class Requirement:
         self.description = data.get('description',key)
         self.pip = list(data.get('pip',[]))
         self.conda = list(data.get('conda',[]))
+        for e in self.conda:
+            conda_package_name( e, 'linux-64' )#check syntax
         self.conda_pip = list(data.get('conda_pip',[]))
         self.local = dict(data.get('local',{}))
         #Conda platforms (e.g. "linux-64") on which the conda packages exist (an

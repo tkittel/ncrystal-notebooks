@@ -74,7 +74,8 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
     colabdir.mkdir( parents = True )
     ( srcdir / 'conf.py' ).write_text( CONF_PY.format(
         project = 'NCrystal notebooks',
-        repo_url = f'https://github.com/{cfg.github_repo}' ) )
+        repo_url = f'https://github.com/{cfg.github_repo}' ),
+        encoding = 'utf-8' )
     shutil.copy( reporoot() / 'devel' / 'site' / 'developers.md',
                  srcdir / 'developers.md' )
 
@@ -86,21 +87,24 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
         #Highlight code as IPython (with magics and shell commands):
         page['metadata']['language_info'] = { 'name' : 'python',
                                               'pygments_lexer' : 'ipython3' }
-        ( nbdir / f'{sk}.ipynb' ).write_text( json.dumps(page,indent=1) )
+        ( nbdir / f'{sk}.ipynb' ).write_text( json.dumps(page,indent=1),
+                                                encoding = 'utf-8' )
         reqs = Requirements( nb.settings, cfg )
         variants = [ ('conda','conda') ]
         if not reqs.needs_conda:
             variants.append( ('pip','pip') )
         for target, sub in variants:
             ( srcdir / '_extra' / 'downloads' / sub / f'{sk}.ipynb'
-              ).write_text( json.dumps( expand( nb, cfg, target ), indent = 1 ) )
+              ).write_text( json.dumps( expand( nb, cfg, target ), indent = 1 ),
+                            encoding = 'utf-8' )
         ( colabdir / f'{sk}.ipynb' ).write_text(
-            json.dumps( expand( nb, cfg, 'colab' ), indent = 1 ) )
+            json.dumps( expand( nb, cfg, 'colab' ), indent = 1 ),
+            encoding = 'utf-8' )
 
     #The index page, with the notebooks by section:
     lines = [ '# NCrystal notebooks', '',
               ( reporoot() / 'devel' / 'site' / 'index_intro.md'
-                ).read_text().strip(), '' ]
+                ).read_text( encoding = 'utf-8' ).strip(), '' ]
     for section in cfg.sections:
         nbs = [ nb for nb in notebooks if nb.settings.section == section.key ]
         if not nbs:
@@ -125,7 +129,7 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir ):
         lines += [ '```', '' ]
     lines += [ '```{toctree}', ':hidden:', ':caption: Development', '',
                'developers', '```', '' ]
-    ( srcdir / 'index.md' ).write_text( '\n'.join(lines) )
+    ( srcdir / 'index.md' ).write_text( '\n'.join(lines), encoding = 'utf-8' )
 
 def finalize_executed( nbdict ):
     """Clean up an executed notebook for the website."""

@@ -71,7 +71,9 @@ description = "Exercises from the NEUWAVE-12 workshop."
 #
 #   description : short description (shown on the website and in listings).
 #   pip         : packages to install with pip.
-#   conda       : packages to install with conda (from conda-forge).
+#   conda       : packages to install with conda (from conda-forge). They can
+#                 be restricted to some platforms with a marker, as in
+#                 "openmpi; sys_platform != 'win32'".
 #   conda_pip   : packages to install with pip, also in conda environments
 #                 (e.g. packages not available on conda-forge).
 #   local       : packages which, when testing or developing, are installed
@@ -143,11 +145,13 @@ conda_platforms = ["linux-64", "osx-64"]
 [requirements.njoy]
 description = "NJOY2016"
 conda = ["njoy2016"]
+conda_platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [requirements.mcstas]
 description = "McStas"
-#McStas compiles with MPI when available (and fails if mpicc is missing):
-conda = ["mcstas-core", "openmpi"]
+#McStas compiles with MPI when available (and fails if mpicc is missing). On
+#Windows, conda-forge only has an old placeholder package of openmpi:
+conda = ["mcstas-core", "openmpi; sys_platform != 'win32'"]
 setup = """
 #Let McStas find its resources:
 import os

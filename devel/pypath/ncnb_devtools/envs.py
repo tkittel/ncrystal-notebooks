@@ -14,7 +14,8 @@ repository (e.g. the notebook utilities), NCrystal built from a local clone
 of the NCrystal repository, and (in the current environment) anything
 missing.
 
-Only Linux and macOS are supported for now.
+Conda environments are used as if activated (with environment variables set
+by their activation scripts, e.g. for compilers), as captured with "conda run".
 """
 
 import hashlib
@@ -38,6 +39,23 @@ EXEC_MODULES = { 'nbclient' : 'nbclient', 'ipykernel' : 'ipykernel',
 
 _complete_marker = '.ncnotebookdevtool_complete'
 
+_is_windows = ( sys.platform == 'win32' )
+
+def _venv_layout( d ):
+    """The Python and the directories with executables of a venv."""
+    if _is_windows:
+        return d / 'Scripts' / 'python.exe', [ d / 'Scripts' ]
+    return d / 'bin' / 'python', [ d / 'bin' ]
+
+def _conda_layout( d ):
+    """The Python and the directories with executables of a conda env."""
+    if _is_windows:
+        return d / 'python.exe', [ d, d / 'Library' / 'mingw-w64' / 'bin',
+                                   d / 'Library' / 'usr' / 'bin',
+                                   d / 'Library' / 'bin', d / 'Scripts',
+                                   d / 'bin' ]
+    return d / 'bin' / 'python', [ d / 'bin' ]
+
 class EnvError(RuntimeError):
     pass
 
@@ -45,9 +63,9 @@ def _run( cmd, *, env = None, log = None, cwd = None ):
     """Run a command, failing with the output if it fails."""
     p = subprocess.run( [str(e) for e in cmd], env = env, cwd = cwd,
                         stdout = subprocess.PIPE, stderr = subprocess.STDOUT,
-                        text = True )
+                        text = True, encoding = 'utf-8', errors = 'replace' )
     if log is not None:
-        with open(log,'a') as fh:
+        with open(log,'a',encoding='utf-8') as fh:
             fh.write('$> ' + ' '.join(str(e) for e in cmd) + '\n')
             fh.write(p.stdout)
     if p.returncode != 0:
@@ -66,7 +84,7 @@ class Env:
     """An environment in which notebooks can run."""
 
     def __init__( self, python, bindirs, description, conda_prefix = None,
-                  jupyter_paths = () ):
+                  jupyter_paths = (), activated = None ):
         self.python = pathlib.Path(python)
         self.bindirs = [ pathlib.Path(d) for d in bindirs ]
         #Jupyter data directories (e.g. with nbconvert templates) of the
@@ -74,12 +92,17 @@ class Env:
         self.jupyter_paths = [ pathlib.Path(d) for d in jupyter_paths ]
         self.description = description
         self.conda_prefix = conda_prefix
+        #Environment variables of the activated conda environment (None for
+        #other environments):
+        self.activated = activated
 
     def environ( self ):
         """Environment variables for processes in this environment."""
-        env = dict(os.environ)
+        env = dict( self.activated or os.environ )
         env['PATH'] = os.pathsep.join( [ str(d) for d in self.bindirs ]
                                        + [ env.get('PATH','') ] )
+        #Output of Python processes (e.g. pip) is read as UTF-8:
+        env['PYTHONIOENCODING'] = 'utf-8'
         for k in ('PYTHONPATH','PYTHONHOME','VIRTUAL_ENV'):
             env.pop(k,None)
         if self.conda_prefix:
@@ -127,7 +150,7 @@ def venv_env( pip_packages, *, python = None, fresh = False, log = None ):
     pyver = _run( [ python, '-c', 'import sys;print(sys.version)' ] ).strip()
     pkgs = sorted(set( pip_packages + EXEC_PIP_PACKAGES ))
     d = _envs_dir() / ( 'venv-' + _key( 'venv', str(python), pyver, pkgs ) )
-    env = Env( d / 'bin' / 'python', [ d / 'bin' ], f'venv {d.name}',
+    env = Env( *_venv_layout(d), f'venv {d.name}',
                jupyter_paths = [ d / 'share' / 'jupyter' ] )
     if fresh or not ( d / _complete_marker ).exists():
         if d.exists():
@@ -139,7 +162,8 @@ def venv_env( pip_packages, *, python = None, fresh = False, log = None ):
                    'pip' ], log = log )
         env.run( [ env.python, '-m', 'pip', 'install', '-q' ] + pkgs,
                  log = log )
-        ( d / _complete_marker ).write_text(' '.join(pkgs)+'\n')
+        ( d / _complete_marker ).write_text( ' '.join(pkgs)+'\n',
+                                             encoding = 'utf-8' )
     return env
 
 def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
@@ -148,12 +172,13 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
     cpkgs = sorted(set( conda_packages + EXEC_CONDA_PACKAGES + ['python'] ))
     ppkgs = sorted(set( pip_packages ))
     d = _envs_dir() / ( 'conda-' + _key( 'conda', cpkgs, ppkgs ) )
-    env = Env( d / 'bin' / 'python', [ d / 'bin' ], f'conda {d.name}',
+    tool = find_conda_tool()
+    python, bindirs = _conda_layout(d)
+    env = Env( python, bindirs, f'conda {d.name}',
                conda_prefix = d, jupyter_paths = [ d / 'share' / 'jupyter' ] )
     if fresh or not ( d / _complete_marker ).exists():
         if d.exists():
             shutil.rmtree(d)
-        tool = find_conda_tool()
         print(f'Creating environment {d.name} (conda: {" ".join(cpkgs)}'
               + ( f'; pip: {" ".join(ppkgs)}' if ppkgs else '' ) + ')',
               flush = True)
@@ -167,13 +192,26 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
         if ppkgs:
             env.run( [ env.python, '-m', 'pip', 'install', '-q' ] + ppkgs,
                      log = log )
-        ( d / _complete_marker ).write_text(' '.join(cpkgs+ppkgs)+'\n')
+        ( d / _complete_marker ).write_text( ' '.join(cpkgs+ppkgs)+'\n',
+                                             encoding = 'utf-8' )
+    env.activated = activated_environ( tool, d, python )
     return env
+
+def activated_environ( tool, prefix, python ):
+    """The environment variables in the activated conda environment."""
+    out = _run( [ tool, 'run', '-p', prefix, python, '-c',
+                  'import os,json;print("@@@"+json.dumps(dict(os.environ)))' ] )
+    for line in out.splitlines():
+        if line.startswith('@@@'):
+            return json.loads(line[3:])
+    raise EnvError(f'Could not get the environment of {prefix}:\n{out}')
 
 def current_env():
     """The environment of the Python running this tool."""
     python = pathlib.Path(sys.executable)
     bindirs = [ python.parent ]
+    if _is_windows and ( python.parent / 'Scripts' ).is_dir():
+        bindirs.append( python.parent / 'Scripts' )
     prefix = os.environ.get('CONDA_PREFIX')
     return Env( python, bindirs, f'current environment ({sys.prefix})',
                 conda_prefix = prefix,
@@ -185,10 +223,12 @@ def overlay_env( base, path, *, log = None ):
         shutil.rmtree(path)
     path.parent.mkdir( parents = True, exist_ok = True )
     _run( [ base.python, '-m', 'venv', path ], env = base.environ(), log = log )
-    ov = Env( path / 'bin' / 'python', [ path / 'bin' ] + base.bindirs,
+    python, bindirs = _venv_layout(path)
+    ov = Env( python, bindirs + base.bindirs,
               f'{base.description} + overlay', conda_prefix = base.conda_prefix,
               jupyter_paths = ( [ path / 'share' / 'jupyter' ]
-                                + base.jupyter_paths ) )
+                                + base.jupyter_paths ),
+              activated = base.activated )
     #Make the packages of the base environment available (after those of the
     #overlay), including processing of their .pth files:
     base_sp = json.loads( base.python_output(
@@ -197,7 +237,7 @@ def overlay_env( base, path, *, log = None ):
         'import site;print(site.getsitepackages()[0])' ) )
     ov_sp.joinpath('_ncnotebookdevtool_base.pth').write_text(
         ''.join( f'import site; site.addsitedir({str(p)!r})\n'
-                 for p in base_sp ) )
+                 for p in base_sp ), encoding = 'utf-8' )
     ov.run( [ ov.python, '-m', 'pip', 'install', '-q', '--upgrade', 'pip' ],
             log = log )
     return ov
@@ -278,7 +318,9 @@ class EnvRequest:
             self.key = ( 'venv', sorted(nonlocal_pkgs(reqs.pip_packages)
                                         + base_plugins) )
         elif kind == 'conda':
-            self.key = ( 'conda', sorted(reqs.conda_packages),
+            from .envsetup import conda_platform
+            self.key = ( 'conda',
+                         sorted(reqs.conda_packages_for(conda_platform())),
                          sorted(nonlocal_pkgs(reqs.conda_pip_packages)
                                 + base_plugins) )
         else:

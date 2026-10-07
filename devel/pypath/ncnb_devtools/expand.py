@@ -54,7 +54,18 @@ class Requirements:
 
     @property
     def conda_packages( self ):
-        return self._collect('conda')
+        """All conda packages (without markers, for instructions)."""
+        return self.conda_packages_for( None )
+
+    def conda_packages_for( self, platform ):
+        """The conda packages needed on the conda platform."""
+        from .config import conda_package_name
+        res = []
+        for e in self._collect('conda'):
+            n = conda_package_name( e, platform )
+            if n and n not in res:
+                res.append(n)
+        return res
 
     @property
     def conda_pip_packages( self ):

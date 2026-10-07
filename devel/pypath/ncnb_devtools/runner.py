@@ -19,7 +19,7 @@ def write_kernelspec( env, datadir ):
         'argv' : [ str(env.python), '-m', 'ipykernel_launcher', '-f',
                    '{connection_file}' ],
         'display_name' : 'Python 3 (ipykernel)',
-        'language' : 'python' }, indent = 1 ) )
+        'language' : 'python' }, indent = 1 ), encoding = 'utf-8' )
 
 def prepare_rundir( rundir, nbname, nbdict ):
     """Create a fresh run directory with the notebook (and the cached files from
@@ -60,6 +60,7 @@ def run_notebook( env, nbfile, limit, logfile ):
         p = subprocess.run( [ str(env.python), str(script), nbfile.name,
                               output.name, str(limit) ],
                             cwd = rundir, env = environ, text = True,
+                            encoding = 'utf-8', errors = 'replace',
                             stdout = subprocess.PIPE,
                             stderr = subprocess.STDOUT,
                             timeout = limit + 300 )
@@ -70,7 +71,7 @@ def run_notebook( env, nbfile, limit, logfile ):
         out += f'\nKilled after {limit+300} seconds'
         rc = 1
     dt = time.time() - t0
-    pathlib.Path(logfile).write_text(out)
+    pathlib.Path(logfile).write_text( out, encoding = 'utf-8' )
     #Remove terminal colour codes (from IPython tracebacks):
     import re
     out = re.sub( r'\x1b\[[0-9;]*m', '', out )

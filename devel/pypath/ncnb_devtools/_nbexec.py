@@ -46,7 +46,8 @@ def main():
         #Check that the notebook can be converted to HTML (cf. ncrystal#266):
         from nbconvert import HTMLExporter
         html, _ = HTMLExporter().from_notebook_node(nb)
-        with open( outp.rsplit('.',1)[0] + '.html', 'w' ) as fh:
+        with open( outp.rsplit('.',1)[0] + '.html', 'w',
+                   encoding = 'utf-8' ) as fh:
             fh.write(html)
     return 0 if ok else 1
 

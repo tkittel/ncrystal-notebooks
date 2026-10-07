@@ -62,7 +62,7 @@ def build_site( args ):
                              ' --allow-failures to build the website anyway)')
         for nb, res in results:
             if res.ok:
-                page = json.loads( res.output.read_text() )
+                page = json.loads( res.output.read_text( encoding = 'utf-8' ) )
                 page = finalize_executed( page )
                 #Add the links after the title cell:
                 page['cells'].insert( 1, { 'cell_type' : 'markdown',
