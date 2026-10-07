@@ -207,8 +207,32 @@ def expand( nb, cfg, target, links_markdown = None ):
     else:
         last = install_comment( reqs, target ) + [''] + code
     new.append( make_cell( 'code', '\n'.join(last), first_id or 'ncnb-setup' ) )
+    for c in rest:
+        if is_input_hidden( c, cfg ):
+            hide_input( c )
     out['cells'] = new + rest
     return out
+
+def is_input_hidden( cell, cfg ):
+    """Whether the code of a cell is hidden (collapsed) for users: if it is
+    tagged "hide-input", or is longer than hide_input_lines (unless tagged
+    "show-input")."""
+    if cell['cell_type'] != 'code':
+        return False
+    tags = cell.get('metadata',{}).get('tags',[])
+    if 'hide-input' in tags:
+        return True
+    return ( 'show-input' not in tags
+             and len(source_str(cell).splitlines()) > cfg.hide_input_lines )
+
+def hide_input( cell ):
+    #The "hide-input" tag is used by the website (myst-nb), and the metadata by
+    #Jupyter Lab and Notebook:
+    md = cell.setdefault('metadata',{})
+    tags = md.setdefault('tags',[])
+    if 'hide-input' not in tags:
+        tags.append('hide-input')
+    md.setdefault('jupyter',{})['source_hidden'] = True
 
 def collapse( nbdict ):
     """Remove generated code from the settings cell of a notebook dict (e.g.

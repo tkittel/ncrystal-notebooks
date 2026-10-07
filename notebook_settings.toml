@@ -18,6 +18,11 @@ ncrystal_min_version = "4.4.6"
 # value in its settings cell):
 max_line_length = 120
 
+# Code cells with more lines than this are shown collapsed on the website and
+# in the notebooks for users (unless tagged "show-input"). Shorter cells can be
+# collapsed by tagging them "hide-input":
+hide_input_lines = 60
+
 # Time limits (in seconds) for running a notebook, from the start to the end of
 # its execution. The limit for tests applies when notebooks are tested (with
 # their test-parameters, if any), and the limit for full runs when the website

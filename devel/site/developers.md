@@ -56,6 +56,14 @@ The keys are:
   values are assigned in a new cell right after the tagged one, while users and
   the website see the original values.
 
+Long code cells which most readers do not need to see (embedded data, or long
+code for an interactive widget) are shown collapsed on the website and in the
+notebooks downloaded by users, with a button to expand them. This happens
+automatically for code cells with more than `hide_input_lines` lines (set in
+`notebook_settings.toml`), and can be requested for other cells by tagging them
+`hide-input` (in Jupyter Lab: the cog icon in the right sidebar, "Add Tag").
+Tag a long cell `show-input` to always show it.
+
 Notebooks must run reasonably fast, both for a good experience for users and
 to keep testing practical. There are therefore time limits (`max_test_time`
 and `max_full_time` in `notebook_settings.toml`) for running a notebook in

@@ -215,3 +215,33 @@ def test_conda_platforms():
     r = Requirements( s, cfg )
     assert r.unavailable_with_conda('linux-64') == []
     assert r.unavailable_with_conda('osx-arm64') == ['x']
+
+def test_hidden_input( fakerepo ):
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    from ncnb_devtools.expand import expand
+    f = fakerepo / 'notebooks' / 'one.ipynb'
+    nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
+                                              key = 'one' ) ),
+                    ('code', 'x = 1'),
+                    ('code', 'y = 2'),
+                    ('code', '\n'.join( f'a{i} = {i}' for i in range(100) ) ),
+                    ('code', '\n'.join( f'b{i} = {i}' for i in range(100) ) ) ]
+                  )
+    nb['cells'][2]['metadata']['tags'] = ['hide-input']
+    nb['cells'][4]['metadata']['tags'] = ['show-input']
+    f.write_text( json.dumps(nb) )
+    run_tool( 'precommit' )
+    cfg = load_config()
+    nbobj = select_notebooks( ['one'], find_notebooks() )[0]
+    for target in ('site','pip','conda','colab'):
+        cells = [ c for c in expand( nbobj, cfg, target )['cells']
+                  if 'x = 1' == ''.join(c['source'])
+                  or ''.join(c['source']).startswith(('y =','a0 =','b0 =')) ]
+        hidden = [ c['metadata'].get('jupyter',{}).get('source_hidden',False)
+                   and 'hide-input' in c['metadata'].get('tags',[])
+                   for c in cells ]
+        assert hidden == [ False, True, True, False ]
+    for target in ('test','launch'):
+        assert not any( c['metadata'].get('jupyter')
+                        for c in expand( nbobj, cfg, target )['cells'] )
