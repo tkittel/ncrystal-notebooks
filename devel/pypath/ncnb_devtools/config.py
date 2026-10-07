@@ -82,6 +82,7 @@ class Config:
         self.max_full_time = int(g.get('max_full_time',40))
         self.max_test_time_slow = int(g.get('max_test_time_slow',500))
         self.max_full_time_slow = int(g.get('max_full_time_slow',900))
+        self.min_full_time_slow = int(g.get('min_full_time_slow',10))
         #The repository can be overridden (e.g. for website builds in forks):
         import os
         self.github_repo = ( os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO')

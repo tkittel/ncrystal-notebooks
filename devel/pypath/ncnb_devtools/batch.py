@@ -59,7 +59,7 @@ def time_limits( args, cfg, target, slow ):
     #checked in tests, where test-parameters can make them faster):
     if target == 'test':
         return cfg.max_test_time_slow, None
-    return cfg.max_full_time_slow, 0.5 * normal
+    return cfg.max_full_time_slow, cfg.min_full_time_slow
 
 def limits_description( args, cfg, target ):
     if args.time_limit:
@@ -69,7 +69,8 @@ def limits_description( args, cfg, target ):
     slow = cfg.max_test_time_slow if t else cfg.max_full_time_slow
     if t:
         return f'{normal} s, or {slow} s for slow notebooks'
-    return f'{normal} s, or {0.5*normal:g}-{slow} s for slow notebooks'
+    return ( f'{normal} s, or {cfg.min_full_time_slow}-{slow} s for slow'
+             ' notebooks' )
 
 WARMUP_CODE = '''
 for m in ('NCrystal','numpy','matplotlib.pyplot','ipykernel'):
