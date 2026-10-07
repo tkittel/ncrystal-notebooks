@@ -1,0 +1,75 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '30 11 * * 2'  # 11:30 every Tuesday
+  workflow_dispatch:
+
+jobs:
+
+  checks:
+    name: Quick checks and tool tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: '3.12'
+    - name: Quick checks of all notebooks
+      run: ./devel/bin/ncnotebookdevtool check
+    - name: Tests of ncnotebookdevtool
+      run: |
+        python -m pip install pytest
+        python -m pytest -v devel/tests
+
+  pip:
+    needs: [ checks ]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python: '3.11' }
+          - { os: ubuntu-latest, python: '3.13' }
+          - { os: macos-latest,  python: '3.12' }
+    name: Notebooks with pip (${{ matrix.os }}, python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ matrix.python }}
+    - name: Run notebooks installable with pip
+      run: ./devel/bin/ncnotebookdevtool test --select pip --env venv -j 3 --workdir ${{ runner.temp }}/work
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-pip-${{ matrix.os }}-${{ matrix.python }}
+        path: ${{ runner.temp }}/work/*.log
+
+  conda:
+    needs: [ checks ]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    name: Notebooks with conda (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: conda-incubator/setup-miniconda@v4
+      with:
+        miniforge-version: latest
+    - name: Run notebooks needing conda
+      run: ./devel/bin/ncnotebookdevtool test --select conda --env conda -j 2 --workdir ${{ runner.temp }}/work
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-conda-${{ matrix.os }}
+        path: ${{ runner.temp }}/work/*.log

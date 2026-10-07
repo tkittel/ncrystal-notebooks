@@ -1,0 +1,71 @@
+name: website
+
+# Runs all notebooks, builds the website and publishes it on GitHub Pages
+# (which must be configured to be deployed by GitHub Actions), and pushes the
+# versions of the notebooks for Google Colab to the googlecolab branch.
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '30 4 * * 1'  # 04:30 every Monday
+  workflow_dispatch:
+
+permissions:
+  contents: write  # for pushing the googlecolab branch
+  pages: write
+  id-token: write
+
+concurrency:
+  group: website
+  cancel-in-progress: false
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: conda-incubator/setup-miniconda@v4
+      with:
+        miniforge-version: latest
+    - name: Run notebooks and build website
+      env:
+        NCNOTEBOOKDEVTOOL_GITHUB_REPO: ${{ github.repository }}
+      run: ./devel/bin/ncnotebookdevtool site -j 3 -o ${{ runner.temp }}/site --workdir ${{ runner.temp }}/work
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-website
+        path: ${{ runner.temp }}/work/*.log
+    - uses: actions/upload-pages-artifact@v5
+      with:
+        path: ${{ runner.temp }}/site/html
+    - name: Push Google Colab versions of the notebooks to the googlecolab branch
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -eux
+        cd ${{ runner.temp }}/site/colab
+        printf '%s\n' "Versions of the notebooks for Google Colab, generated from" \
+          "${GITHUB_SHA} by the website workflow (do not edit)." > README.md
+        git init -q -b googlecolab
+        git add .
+        git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -q -m "Google Colab versions of the notebooks (from ${GITHUB_SHA})"
+        git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" googlecolab
+
+  deploy:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v5

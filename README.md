@@ -1,142 +1,29 @@
 # ncrystal-notebooks
 
-Python notebooks with examples, documentation, and tutorials for usage of NCrystal. You can either run the notebooks directly on your laptop (see below for instructions), or you can open them in google Colab by clicking the links (note: you must then click "save to Drive" before you can actually run any cells). Finally, you can also simply click the notebook links to browse them as static files directly on GitHub.
+Jupyter notebooks with examples, documentation and tutorials for
+[NCrystal](https://github.com/mctools/ncrystal).
 
-## The notebooks
+The notebooks are best browsed on the website, where each of them can also be
+downloaded (in versions for installations with pip or conda) or opened
+directly in Google Colab:
 
-### Notebooks providing a basic introduction to NCrystal
+**https://mctools.github.io/ncrystal-notebooks**
 
-* [Introduction to NCrystal and the Python API](notebooks/ncrystal1_basic_01_Introduction_and_Python_API.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal1_basic_01_Introduction_and_Python_API.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * This is where you should start, to get a good solid foundation and learn about the basic NCrystal objects and what they provide.
-* [NCrystal data infrastructure and standard data library](notebooks/ncrystal1_basic_02_Data_Infrastructure_and_StdDataLib.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal1_basic_02_Data_Infrastructure_and_StdDataLib.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this notebook we will discuss the NCrystal data library of predefined materials, as well as the general infrastructure for how such data is handled.
-* [Using the builtin "MiniMC" framework for generating scatter patterns](notebooks/ncrystal1_basic_03_Scatter_patterns_with_the_builtin_MiniMC_framework.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal1_basic_03_Scatter_patterns_with_the_builtin_MiniMC_framework.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * Here we discuss how to easily study effects of geometry and multiple scattering using the builtin "MiniMC" framework.
-* [Using NCrystal as a backend for full-fledged Monte Carlo simulations](notebooks/ncrystal1_basic_04_NCrystal_as_backend_for_third_party_apps.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal1_basic_04_NCrystal_as_backend_for_third_party_apps.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * Here we discuss how NCrystal can be used as a physics engine in fully fledged frameworks like McStas, OpenMC, or Geant4.
+## For developers
 
-### Notebooks related to creation of new material definitions
-
-* [Creating materials and the NCMATComposer](notebooks/ncrystal2_advanced_01_Creating_materials_and_the_NCMATComposer.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal2_advanced_01_Creating_materials_and_the_NCMATComposer.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * This is for people wishing to put together new materials, introducing the `NCMATComposer` helper class and discussing the basic ingredients needed to define a material in NCrystal.
-* [Importing crystal structures from CIF files or online databases](notebooks/ncrystal2_advanced_02_Import_crystal_structure_from_CIF_or_databases.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal2_advanced_02_Import_crystal_structure_from_CIF_or_databases.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * If your material has a crystal structure, you most likely will need to import that crystal structure from either a CIF file or an online database. We learn how to build upon the previous `NCMATComposer` work by loading such structures from external sources.
-* [Adding phonon information](notebooks/ncrystal2_advanced_03_Add_phonon_info_with_PhononDOSAnalyser_with_QuantumEspresso_example.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal2_advanced_03_Add_phonon_info_with_PhononDOSAnalyser_with_QuantumEspresso_example.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * If your material is a solid (crystalline or amorphous), you need a phonon density of state (DOS) curve to get high-quality modelling of both inelastic and (perhaps surprisingly) elastic scattering. In this example, we go through all the steps of loading DOS curves produced by [Quantum Espresso](https://www.quantum-espresso.org/), and goes through the steps needed to clean them up a bit by removing unwanted artifacts that would otherwise prevent their usage, Finally, we use the `NCMATComposer` to combine both phonon DOS curves and crystal structures into a high quality NCMAT description of the material.
-
-### Miscellaneous notebooks
-
-* [Connecting phonon DOS curves to inelastic scattering ](notebooks/ncrystal2_advanced_04_VDOS2KNL_Connecting_phonons_to_inelastic_scattering.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal2_advanced_04_VDOS2KNL_Connecting_phonons_to_inelastic_scattering.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this short notebook, we briefly mention the theoretical procedure used by NCrystal to expand a 1D phonon DOS curve to a 2D scattering kernel, and proceed to provide a few interactive widgets which can be used to understand this connection in practice.
-* [Exporting materials as ENDF files](notebooks/ncrystal2_advanced_05_export_ENDF.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/ncrystal2_advanced_05_export_ENDF.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * Notebook using the [ncmat2endf](https://github.com/mctools/ncrystal/wiki/ncmat2endf) feature to export ENDF-6 files from NCrystal.
-* [Investigate sapphire filter](notebooks/misc/ncrystal_sapphire_filter.ipynb)
-  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/misc/ncrystal_sapphire_filter.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * Notebook investigating transmission probability of a sapphire filter, and the effect of different ways of modelling.
-
-### Contributed notebooks
-
-Examples from the NEUWAVE-12 tutorial
-
-* [NEUWAVE-12 Examples: neutron filters](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Neutron_filters_exercise.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Neutron_filters_exercise.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we will calculate cross-sections and neutron transmission through various polycrystalline and single-crystal filters and make comparisons to experimental data.
-* [NEUWAVE-12 Examples: sample container transmission exercise](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Sample_container_transmission_exercise.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Sample_container_transmission_exercise.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we will calculate cross-sections and neutron transmission through various metals used for sample holders.
-* [NEUWAVE-12 Examples: water / ice](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Water_Ice.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Water_Ice.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we use NCrystal to see the wavelength dependence of the total cross section of light water and ice at different temperatures.
-* [NEUWAVE-12 Examples: in-scattering](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_In_scattering.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_In_scattering.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we will compute the in-scattering probability using different techiques, and see the effect it has in the wavelength dependent transmission.
-* [NEUWAVE-12 Examples: polymers with Functional Group Approximation](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Polymers_with_Functional_Group_Approximation.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Polymers_with_Functional_Group_Approximation.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we will compute the cross section of polylactic acid using the average functional group approximation.
-* [NEUWAVE-12 Examples: NCrystal materials in McStas](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Transmission_with_NCrystal_and_McStas.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Transmission_with_NCrystal_and_McStas.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we install McStas and Ncrystal using conda / mamba, and create a instrument simulation for a simple transmission beamline with a NCrystal sample.
-* [NEUWAVE-12 Examples: extinction correction](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Extinction_correction_exercise.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Extinction_correction_exercise.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example it is shown how to calculate the coherent elastic cross-section by accessing hkl information in NCrystal. The cross-section is then modified with the extinction parameter from the Sabine model.
-* [NEUWAVE-12 Examples: texture plugin](notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Installing_Plugins_Texture_exercise.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/NEUWAVE-12/NEUWAVE_12_Examples_Installing_Plugins_Texture_exercise.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * This exercise shows how to use the texture plugin, CrysText, together with NCrystal. In this example, the modifications to the coherent elastic cross-section are included in the NCrystal plugin.
-
-Examples from the ND2025 conference
-
-* [ND2025 Examples: NCrystal materials in OpenMC](notebooks/contributed/ND2025/ND2025_OpenMC_NCrystal.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/ND2025/ND2025_OpenMC_NCrystal.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we use NCrystal materials in OpenMC to calculate the diffraction pattern from a germanium single crystal.
-
-* [ND2025 Examples: ncmat2endf](notebooks/contributed/ND2025/ND2025_ncmat2endf.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/ND2025/ND2025_ncmat2endf.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we use ncmat2endf to export ENDF files from NCrystal, then use NJOY to convert these files into ACE format, and add them to OpenMC simulations.
-
-* [ND2025 Examples: Create an ENDF library with extinction](notebooks/contributed/ND2025/ND2025_Extinction_ENDF_library.ipynb)  <a target="_blank" href="https://colab.research.google.com/github/mctools/ncrystal-notebooks/blob/main/notebooks/contributed/ND2025/ND2025_Extinction_ENDF_library.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
-  </a>
-  * In this example we use ncmat2endf and the extinction plugin, CrysExtn, to create an ENDF file. We also use NJOY to convert the file into ACE format and investigate the resulting cross sections via OpenMC.
-
-## Instructions for running these notebooks.
-
-### Browse on GitHub
-
-Just click the names of the notebooks above to get a static view of the notebooks. This is can be convenient, but offers a non-interactive view. GUI widgets are not working, and cells containing a huge amount of output are shown expanded.
-
-### Open in google Colab
-
-Clicking the google Colab links above will open the notebooks in google Colab. To actually be able to execute cells, you will need a google account and then you must click "Copy to Drive" to get your own copy in the cloud that you can edit and run. One downside is that although GUI widgets work, matplotlib plots are only shown as static images and can therefore not be resized or zoomed interactively. Apart from that, this is a convenient way to run the notebooks without the need for any local installations.
-
-### Run locally
-
-Running locally is easy since everything can be installed via `pip` or `conda`. So either create a conda environment using the [conda.yml](conda.yml) environment file, or `pip install` all the required dependencies into a dedicated Python environment by (you can of course also `pip install` into your default Python environment if you are not the careful type).:
+Contributions of new notebooks are very welcome. The notebooks are maintained
+with the `devel/bin/ncnotebookdevtool` command (run it without arguments for
+usage). In short:
 
 ```
-#create and activate a virtual environment:
-python3 -mvenv ./venv
-. ./venv/bin/activate
-#install the packages needed by NCrystal and JupyterLab:
-python3 -mpip install "ncrystal[all]" jupyterlab ipympl pandas tqdm
+. devel/setup.sh                     # add ncnotebookdevtool to your PATH
+ncnotebookdevtool list               # list the notebooks
+ncnotebookdevtool launch SHORTKEY    # edit a notebook in Jupyter Lab
+ncnotebookdevtool precommit          # run before each commit
+ncnotebookdevtool test [SHORTKEY]    # run notebooks as in CI
 ```
 
-In any case, you can then download the above notebooks (individually, or just clone or download the whole ncrystal-notebooks repo) and open the notebooks via the command `jupyter-lab nameofnotebook.ipynb`.
+See the [developer section](https://mctools.github.io/ncrystal-notebooks/developers.html)
+of the website (or [devel/site/developers.md](devel/site/developers.md)) for
+details, including how notebooks declare their requirements in their first
+cell, and how to test them with a local clone of the NCrystal repository.
