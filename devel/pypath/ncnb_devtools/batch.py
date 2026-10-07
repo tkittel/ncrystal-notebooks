@@ -65,14 +65,24 @@ def run_batch( jobs, args, cfg, workdir, target ):
         prepared.append( ( nb, env, nbfile,
                            time_limit( args, cfg, target ) ) )
 
+    import threading
+    lock = threading.Lock()
+    counts = { 'started' : 0, 'done' : 0 }
+    ntot = len(prepared)
+
     def run( item ):
         nb, env, nbfile, limit = item
-        print(f'Running {nb.shortkey} ({nb.relpath}) in {env.description}',
-              flush = True)
+        with lock:
+            counts['started'] += 1
+            print(f'Running ({counts["started"]}/{ntot}) {nb.shortkey}'
+                  f' ({nb.relpath}) in {env.description}', flush = True)
         res = run_notebook( env, nbfile, limit,
                             workdir / f'{nb.shortkey}.log' )
-        print(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
-              f' ({res.seconds:.0f} s)', flush = True)
+        with lock:
+            counts['done'] += 1
+            print(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
+                  f' ({res.seconds:.0f} s) [{counts["done"]}/{ntot} done]',
+                  flush = True)
         return nb, res
 
     with ThreadPoolExecutor( max_workers = max(1,args.j) ) as ex:
