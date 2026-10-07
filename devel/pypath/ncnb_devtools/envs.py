@@ -94,6 +94,10 @@ class Env:
         env['JUPYTER_PATH'] = os.pathsep.join( str(d) for d in
                                                self.jupyter_paths )
         env['MPLBACKEND'] = 'agg'
+        #Cache for large data downloaded by notebooks (see the
+        #ncrystal_notebook_utilities package):
+        env.setdefault( 'NCRYSTAL_NOTEBOOK_DATA_CACHE',
+                        str( cache_dir() / 'data' ) )
         return env
 
     def run( self, cmd, **kwargs ):

@@ -50,6 +50,13 @@ The keys are:
   characters) is not suitable, e.g. for embedded data.
 * `timeout`: Timeout in seconds for running the notebook, if the default is not
   suitable.
+* `test-parameters`: Values used when testing, e.g. to reduce statistics in
+  notebooks which take a long time to run (`# test-parameters: n = 1000; m = 2`).
+  The notebook must then put these numbers in a single code cell, tagged
+  `parameters` (in Jupyter Lab: the cog icon in the right sidebar, "Add Tag"),
+  and use the variables in the rest of the notebook. When testing, the test
+  values are assigned in a new cell right after the tagged one, while users and
+  the website see the original values.
 
 The available sections, requirements and plugins are defined in
 `notebook_settings.toml` at the top of the repository. A requirement can

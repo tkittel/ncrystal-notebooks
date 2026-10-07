@@ -32,9 +32,15 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v4
       with:
         miniforge-version: latest
+    - name: Cache data downloaded by notebooks
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/ncnbdata
+        key: ncnb-data-v1-${{ runner.os }}
     - name: Run notebooks and build website
       env:
         NCNOTEBOOKDEVTOOL_GITHUB_REPO: ${{ github.repository }}
+        NCRYSTAL_NOTEBOOK_DATA_CACHE: ${{ runner.temp }}/ncnbdata
       run: ./devel/bin/ncnotebookdevtool site -j 3 -o ${{ runner.temp }}/site --workdir ${{ runner.temp }}/work
     - name: Upload logs of failed notebooks
       if: failure()
