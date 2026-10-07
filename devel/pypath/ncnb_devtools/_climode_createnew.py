@@ -25,7 +25,8 @@ class _Asker:
 
     def __init__( self ):
         import sys
-        self.interactive = sys.stdin.isatty()
+        #Both must be terminals (on Windows, isatty() is also true for NUL):
+        self.interactive = sys.stdin.isatty() and sys.stdout.isatty()
 
     def get( self, value, option, prompt, check, default = None ):
         """Value of an option (checked), or asked for until valid. The check

@@ -70,6 +70,7 @@ def fakerepo( tmp_path, monkeypatch ):
 def run_tool( *args, check = True ):
     p = subprocess.run( [ sys.executable, str(TOOL) ] + list(args),
                         capture_output = True, text = True,
+                        stdin = subprocess.DEVNULL,
                         encoding = 'utf-8',
                         env = dict(os.environ) )
     if check and p.returncode != 0:
