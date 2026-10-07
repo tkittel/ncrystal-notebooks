@@ -12,7 +12,7 @@
 [general]
 
 # Minimum NCrystal version, checked when the notebooks run:
-ncrystal_min_version = "4.2.13"
+ncrystal_min_version = "4.4.6"
 
 # Maximum length of lines in code cells (a notebook can declare a different
 # value in its settings cell):
