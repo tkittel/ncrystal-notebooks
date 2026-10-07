@@ -93,7 +93,9 @@ class Requirements:
             n = conda_package_name( e, platform )
             if n and n not in res:
                 res.append(n)
-        #The ncrystal-extra and ncrystal-all packages include ncrystal:
+        #ncrystal-all includes ncrystal-extra, which includes ncrystal:
+        if 'ncrystal-all' in res and 'ncrystal-extra' in res:
+            res.remove('ncrystal-extra')
         if 'ncrystal' in res and ( 'ncrystal-extra' in res
                                    or 'ncrystal-all' in res ):
             res.remove('ncrystal')

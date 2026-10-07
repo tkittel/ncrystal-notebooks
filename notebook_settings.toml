@@ -122,17 +122,23 @@ description = "Jupyter widgets"
 pip = ["ipywidgets"]
 conda = ["ipywidgets"]
 
+# NCrystal's own packages are used for optional dependencies of NCrystal, so
+# NCrystal controls their versions. On conda-forge, ncrystal-extra has gemmi and
+# spglib, and only ncrystal-all also has ASE (and endf-parserpy).
 [requirements.cif]
-description = "CIF file support (gemmi, spglib, ASE)"
-# The NCrystal packages for this, so NCrystal controls the versions (on
-# conda-forge, only ncrystal-all includes ASE):
+description = "CIF file support (gemmi, spglib)"
 pip = ["ncrystal[cif]"]
-conda = ["ncrystal-all"]
+conda = ["ncrystal-extra"]
 colab_setup = """
 #Avoid warnings later on Google Colab (cf. mctools/ncrystal#192):
 import gemmi
 import spglib
 """
+
+[requirements.ase]
+description = "ASE"
+pip = ["ncrystal[cif]"]
+conda = ["ncrystal-all"]
 
 [requirements.endf]
 description = "ENDF support (endf-parserpy)"
