@@ -65,11 +65,19 @@ suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
                      'misc.highlighting_failure' ]
 '''
 
-#Compact layout of the lists of notebooks on the front page, and long text
-#outputs of cells in scrollable boxes:
+#Compact layout of the lists of notebooks on the front page, and text outputs
+#of cells in scrollable boxes, with a background (in light and dark mode)
+#different from both the page and the code cells:
 CSS = '''
+:root { --ncnb-output-bg: #fbf8ec; --ncnb-output-bar: #d9c98f; }
+html[data-theme=dark] { --ncnb-output-bg: #2a2619; --ncnb-output-bar: #6b5f35; }
 .cell_output .output.stream pre, .cell_output .output.stderr pre,
 .cell_output .output.text_plain pre { max-height: 25em; overflow-y: auto; }
+.cell_output .output .highlight, .cell_output .output pre {
+  background: var(--ncnb-output-bg) !important; }
+.cell_output .output.stream, .cell_output .output.stderr,
+.cell_output .output.text_plain {
+  border-left: 4px solid var(--ncnb-output-bar); border-radius: 2px; }
 .bd-article section:has(> ul.ncnb-list) > h2 {
   font-size: 1.45rem; margin-top: 1.1em !important;
   margin-bottom: 0.15em !important; }
