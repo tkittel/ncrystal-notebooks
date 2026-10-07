@@ -18,9 +18,14 @@ ncrystal_min_version = "4.2.13"
 # value in its settings cell):
 max_line_length = 120
 
-# Default timeout (in seconds) for running a single notebook (a notebook can
-# declare a different value in its settings cell):
-timeout = 1800
+# Time limits (in seconds) for running a notebook, from the start to the end of
+# its execution. The limit for tests applies when notebooks are tested (with
+# their test-parameters, if any), and the limit for full runs when the website
+# is built (as users would run them). Notebooks exceeding these fail. They are
+# currently about twice the slowest times seen (244 s and 432 s), and should be
+# lowered when the slowest notebooks are made faster:
+max_test_time = 500
+max_full_time = 900
 
 # GitHub repository, the branch with the Google Colab versions of the
 # notebooks, and the website:

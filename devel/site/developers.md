@@ -48,8 +48,6 @@ The keys are:
   imported for it, e.g. because it installs plugins before importing NCrystal.
 * `max-line-length`: Maximum length of lines in code cells, if the default (120
   characters) is not suitable, e.g. for embedded data.
-* `timeout`: Timeout in seconds for running the notebook, if the default is not
-  suitable.
 * `test-parameters`: Values used when testing, e.g. to reduce statistics in
   notebooks which take a long time to run (`# test-parameters: n = 1000; m = 2`).
   The notebook must then put these numbers in a single code cell, tagged
@@ -57,6 +55,13 @@ The keys are:
   and use the variables in the rest of the notebook. When testing, the test
   values are assigned in a new cell right after the tagged one, while users and
   the website see the original values.
+
+Notebooks must run reasonably fast, both for a good experience for users and
+to keep testing practical. There are therefore time limits (`max_test_time`
+and `max_full_time` in `notebook_settings.toml`) for running a notebook in
+tests (with its test parameters) and as users run it (when building the
+website). Notebooks taking longer fail. The time of each notebook is shown in
+the summary at the end of `ncnotebookdevtool test`.
 
 The available sections, requirements and plugins are defined in
 `notebook_settings.toml` at the top of the repository. A requirement can

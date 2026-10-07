@@ -40,8 +40,9 @@ class RunResult:
         self.message = message
         self.output = output
 
-def run_notebook( env, nbfile, timeout, logfile ):
-    """Run the notebook file (in its directory) in the environment."""
+def run_notebook( env, nbfile, limit, logfile ):
+    """Run the notebook file (in its directory) in the environment. It fails
+    if its execution takes longer than limit seconds."""
     nbfile = pathlib.Path(nbfile)
     rundir = nbfile.parent
     output = rundir / ( nbfile.stem + '.executed.ipynb' )
@@ -57,16 +58,16 @@ def run_notebook( env, nbfile, timeout, logfile ):
     t0 = time.time()
     try:
         p = subprocess.run( [ str(env.python), str(script), nbfile.name,
-                              output.name, str(timeout) ],
+                              output.name, str(limit) ],
                             cwd = rundir, env = environ, text = True,
                             stdout = subprocess.PIPE,
                             stderr = subprocess.STDOUT,
-                            timeout = timeout + 300 )
+                            timeout = limit + 300 )
         out, rc = p.stdout, p.returncode
     except subprocess.TimeoutExpired as e:
         out = ( e.stdout or b'' )
         out = out.decode() if isinstance(out,bytes) else out
-        out += f'\nTimeout after {timeout} seconds'
+        out += f'\nKilled after {limit+300} seconds'
         rc = 1
     dt = time.time() - t0
     pathlib.Path(logfile).write_text(out)

@@ -28,7 +28,7 @@ def build_site( args ):
     from .expand import Requirements
     from .envsetup import env_kind
     from .envs import venv_env
-    from .batch import ( quick_checks, make_workdir, run_batch, print_summary,
+    from .batch import ( time_limit, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
     from .site import ( write_sources, build_html, finalize_executed,
                         links_markdown, SPHINX_PACKAGES )
@@ -47,7 +47,8 @@ def build_site( args ):
             raise SystemExit('ERROR: Notebooks needing conda can not be run'
                              f' with --env=venv: {" ".join(skipped)}')
         results = run_batch( jobs, args, cfg, workdir, 'site' )
-        nfail = print_summary( results, workdir )
+        nfail = print_summary( results, workdir,
+                           time_limit( args, cfg, 'site' ) )
         if nfail and not args.allow_failures:
             cleanup_workdir( args, workdir, nfail )
             raise SystemExit(f'\nERROR: {nfail} notebooks failed (use'

@@ -3,31 +3,45 @@
 This script runs with the Python of the environment in which the notebook
 runs (it is not imported as part of the ncnb_devtools package).
 
-Usage: python _nbexec.py INPUT OUTPUT TIMEOUT
+Usage: python _nbexec.py INPUT OUTPUT TIMELIMIT
 """
 
 import sys
 import time
 
 def main():
-    inp, outp, timeout = sys.argv[1], sys.argv[2], int(sys.argv[3])
+    inp, outp, limit = sys.argv[1], sys.argv[2], int(sys.argv[3])
     import nbformat
     from nbclient import NotebookClient
-    from nbclient.exceptions import CellExecutionError
+    from nbclient.exceptions import CellExecutionError, CellTimeoutError
     nb = nbformat.read( inp, as_version = 4 )
     nbformat.validate(nb)
-    client = NotebookClient( nb, timeout = timeout, kernel_name = 'python3',
-                             resources = { 'metadata' : { 'path' : '.' } } )
     t0 = time.time()
-    ok = True
+    deadline = t0 + limit
+    def remaining_time( cell ):
+        #Each cell can use the time left until the deadline:
+        return max( 1, int( deadline - time.time() ) + 1 )
+    client = NotebookClient( nb, timeout_func = remaining_time,
+                             kernel_name = 'python3',
+                             resources = { 'metadata' : { 'path' : '.' } } )
+    ok, timed_out = True, False
     try:
         client.execute()
+    except CellTimeoutError:
+        ok, timed_out = False, True
     except CellExecutionError as e:
         ok = False
         print( str(e)[-6000:] )
     finally:
         nbformat.write( nb, outp )
-    print(f'Executed in {time.time()-t0:.1f} seconds')
+    dt = time.time() - t0
+    print(f'Executed in {dt:.1f} seconds')
+    if timed_out or dt > limit:
+        ok = False
+        print(f'ERROR: The notebook exceeded the time limit of {limit} seconds'
+              ' (see max_test_time and max_full_time in'
+              ' notebook_settings.toml). Please make it faster (for tests,'
+              ' perhaps with test-parameters).')
     if ok:
         #Check that the notebook can be converted to HTML (cf. ncrystal#266):
         from nbconvert import HTMLExporter

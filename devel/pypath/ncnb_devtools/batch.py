@@ -9,9 +9,10 @@ def add_batch_args( parser ):
     add_env_args( parser )
     parser.add_argument( '-j', type = int, default = 1, metavar = 'N',
                          help = 'Number of notebooks to run in parallel.' )
-    parser.add_argument( '--timeout', type = int, metavar = 'SECONDS',
-                         help = """Timeout for each notebook (default: from
-                         the settings).""" )
+    parser.add_argument( '--time-limit', type = int, metavar = 'SECONDS',
+                         help = """Override the time limit for each notebook
+                         (default: max_test_time or max_full_time from
+                         notebook_settings.toml), e.g. for debugging.""" )
     parser.add_argument( '--workdir', metavar = 'DIR',
                          help = """Directory for run directories and logs
                          (default: a new temporary directory, removed when
@@ -43,6 +44,11 @@ def cleanup_workdir( args, workdir, failed ):
     else:
         shutil.rmtree( workdir, ignore_errors = True )
 
+def time_limit( args, cfg, target ):
+    if args.time_limit:
+        return args.time_limit
+    return cfg.max_test_time if target == 'test' else cfg.max_full_time
+
 def run_batch( jobs, args, cfg, workdir, target ):
     """Run the notebooks in jobs (list of (notebook,envkind)), expanded for the
     target, and return a list of (notebook,RunResult)."""
@@ -56,14 +62,14 @@ def run_batch( jobs, args, cfg, workdir, target ):
         env = setup.env_for( nb, kind )
         nbfile = prepare_rundir( workdir / nb.shortkey, nb.path.name,
                                  expand( nb, cfg, target ) )
-        timeout = args.timeout or nb.settings.timeout or cfg.timeout
-        prepared.append( ( nb, env, nbfile, timeout ) )
+        prepared.append( ( nb, env, nbfile,
+                           time_limit( args, cfg, target ) ) )
 
     def run( item ):
-        nb, env, nbfile, timeout = item
+        nb, env, nbfile, limit = item
         print(f'Running {nb.shortkey} ({nb.relpath}) in {env.description}',
               flush = True)
-        res = run_notebook( env, nbfile, timeout,
+        res = run_notebook( env, nbfile, limit,
                             workdir / f'{nb.shortkey}.log' )
         print(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
               f' ({res.seconds:.0f} s)', flush = True)
@@ -72,9 +78,10 @@ def run_batch( jobs, args, cfg, workdir, target ):
     with ThreadPoolExecutor( max_workers = max(1,args.j) ) as ex:
         return list( ex.map( run, prepared ) )
 
-def print_summary( results, workdir ):
+def print_summary( results, workdir, limit = None ):
     """Print summary, and return the number of failures."""
-    print('\nSummary:')
+    print('\nSummary' + ( f' (time limit per notebook: {limit} s):'
+                          if limit else ':' ))
     nfail = 0
     for nb, res in results:
         print(f'  {"OK    " if res.ok else "FAILED"} {res.seconds:6.0f} s'
