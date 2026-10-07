@@ -63,6 +63,7 @@ automatically for code cells with more than `hide_input_lines` lines (set in
 `notebook_settings.toml`), and can be requested for other cells by tagging them
 `hide-input` (in Jupyter Lab: the cog icon in the right sidebar, "Add Tag").
 Tag a long cell `show-input` to always show it.
+On the website, long text outputs are shown in boxes with a scrollbar.
 
 Notebooks must run reasonably fast, both for a good experience for users and
 to keep testing practical. There are therefore time limits (`max_test_time`

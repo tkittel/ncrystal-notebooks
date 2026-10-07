@@ -65,8 +65,11 @@ suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
                      'misc.highlighting_failure' ]
 '''
 
-#Compact layout of the lists of notebooks on the front page:
+#Compact layout of the lists of notebooks on the front page, and long text
+#outputs of cells in scrollable boxes:
 CSS = '''
+.cell_output .output.stream pre, .cell_output .output.stderr pre,
+.cell_output .output.text_plain pre { max-height: 25em; overflow-y: auto; }
 .bd-article section:has(> ul.ncnb-list) > h2 {
   font-size: 1.45rem; margin-top: 1.1em !important;
   margin-bottom: 0.15em !important; }
