@@ -9,8 +9,31 @@ Usage: python _nbexec.py INPUT OUTPUT TIMELIMIT
 import sys
 import time
 
+def patch_jupyter_client():
+    """Work around messages from the kernel which nbclient (or rather the
+    zmq-based channels of jupyter_client) sometimes only receives when its wait
+    for them times out. This happens in particular for notebooks with
+    ipywidgets.interact, which then hang until the cell timeout, while the
+    kernel sent its reply right away. Waiting in short slices avoids this."""
+    from queue import Empty
+    from jupyter_client.channels import AsyncZMQSocketChannel
+    orig_get_msg = AsyncZMQSocketChannel.get_msg
+    async def get_msg( self, timeout = None ):
+        deadline = None if timeout is None else time.monotonic() + timeout
+        while True:
+            dt = 0.2
+            if deadline is not None:
+                dt = min( dt, max( 0.0, deadline - time.monotonic() ) )
+            try:
+                return await orig_get_msg( self, timeout = dt )
+            except Empty:
+                if deadline is not None and time.monotonic() >= deadline:
+                    raise
+    AsyncZMQSocketChannel.get_msg = get_msg
+
 def main():
     inp, outp, limit = sys.argv[1], sys.argv[2], int(sys.argv[3])
+    patch_jupyter_client()
     import nbformat
     from nbclient import NotebookClient
     from nbclient.exceptions import CellExecutionError, CellTimeoutError
