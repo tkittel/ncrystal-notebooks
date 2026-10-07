@@ -80,6 +80,8 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v4
       with:
         miniforge-version: latest
+        channels: conda-forge
+        conda-remove-defaults: "true"
     - name: Cache data downloaded by notebooks
       uses: actions/cache@v5
       with:
