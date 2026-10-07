@@ -26,14 +26,17 @@ hide_input_lines = 60
 # Time limits (in seconds) for running a notebook, from the start to the end of
 # its execution. The limits for tests apply when notebooks are tested (with
 # their test-parameters, if any), and the limits for full runs when the website
-# is built (as users would run them). Notebooks exceeding these fail. Notebooks
-# marked as slow have separate limits, but fail if they run in less than half
-# of the limits for other notebooks (so the mark is removed when no longer
-# needed). The limits are about twice the slowest times seen (68 s for other
-# notebooks, and 244 s and 432 s for slow ones), and should be lowered when
-# the slowest notebooks are made faster:
-max_test_time = 150
-max_full_time = 150
+# is built (as users would run them). Notebooks exceeding these fail.
+#
+# Notebooks should run in less than 20 s, and those taking more than 25 s
+# should be marked as slow. Slow notebooks have separate limits, but fail if
+# their full runs take less than half of the limit for other notebooks (so the
+# mark is removed when no longer needed; this is not checked in tests, where
+# test-parameters can make them faster). The limits for slow notebooks are
+# about twice the slowest times seen (244 s and 432 s), and should be lowered
+# when the slowest notebooks are made faster:
+max_test_time = 40
+max_full_time = 40
 max_test_time_slow = 500
 max_full_time_slow = 900
 

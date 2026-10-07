@@ -78,8 +78,8 @@ class Config:
         self.ncrystal_min_version = g.get('ncrystal_min_version','4.0.0')
         self.max_line_length = int(g.get('max_line_length',120))
         self.hide_input_lines = int(g.get('hide_input_lines',60))
-        self.max_test_time = int(g.get('max_test_time',150))
-        self.max_full_time = int(g.get('max_full_time',150))
+        self.max_test_time = int(g.get('max_test_time',40))
+        self.max_full_time = int(g.get('max_full_time',40))
         self.max_test_time_slow = int(g.get('max_test_time_slow',500))
         self.max_full_time_slow = int(g.get('max_full_time_slow',900))
         #The repository can be overridden (e.g. for website builds in forks):

@@ -72,9 +72,10 @@ Notebooks must run reasonably fast, both for a good experience for users and
 to keep testing practical. There are therefore time limits (in
 `notebook_settings.toml`) for running a notebook in tests (with its test
 parameters) and as users run it (when building the website). Notebooks taking
-longer fail. Notebooks which can not be made fast enough can be marked as slow
-(see above), and then get more time, but fail if they turn out to run in less
-than half the time allowed for other notebooks. The time of each notebook is
+longer fail. Notebooks should run in less than 20 seconds. Those taking more
+than 25 seconds should be marked as slow (see above), and then get more time,
+but fail if they turn out to run (as users run them) in less than half the
+time allowed for other notebooks. The time of each notebook is
 shown in the summary at the end of `ncnotebookdevtool test`.
 
 The available sections, requirements and plugins are defined in

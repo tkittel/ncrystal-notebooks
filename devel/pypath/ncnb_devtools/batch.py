@@ -55,9 +55,11 @@ def time_limits( args, cfg, target, slow ):
     normal = cfg.max_test_time if target == 'test' else cfg.max_full_time
     if not slow:
         return normal, None
-    #Slow notebooks get more time, but must also really be slow:
-    return ( cfg.max_test_time_slow if target == 'test'
-             else cfg.max_full_time_slow ), 0.5 * normal
+    #Slow notebooks get more time, but full runs must also really be slow (not
+    #checked in tests, where test-parameters can make them faster):
+    if target == 'test':
+        return cfg.max_test_time_slow, None
+    return cfg.max_full_time_slow, 0.5 * normal
 
 def limits_description( args, cfg, target ):
     if args.time_limit:
@@ -65,7 +67,17 @@ def limits_description( args, cfg, target ):
     t = target == 'test'
     normal = cfg.max_test_time if t else cfg.max_full_time
     slow = cfg.max_test_time_slow if t else cfg.max_full_time_slow
+    if t:
+        return f'{normal} s, or {slow} s for slow notebooks'
     return f'{normal} s, or {0.5*normal:g}-{slow} s for slow notebooks'
+
+WARMUP_CODE = '''
+for m in ('NCrystal','numpy','matplotlib.pyplot','ipykernel'):
+    try:
+        __import__(m)
+    except ImportError:
+        pass
+'''
 
 def run_batch( jobs, args, cfg, workdir, target ):
     """Run the notebooks in jobs (list of (notebook,envkind)), expanded for the
@@ -82,6 +94,14 @@ def run_batch( jobs, args, cfg, workdir, target ):
                                  expand( nb, cfg, target ) )
         prepared.append( ( nb, env, nbfile,
                            time_limits( args, cfg, target, nb.settings.slow ) ) )
+    #Warm up each environment, so one-time costs (e.g. building the font cache
+    #of matplotlib, or the first imports of large packages on macOS) do not
+    #count in the times of the notebooks:
+    warmed = set()
+    for _, env, _, _ in prepared:
+        if str(env.python) not in warmed:
+            warmed.add( str(env.python) )
+            env.run( [ env.python, '-c', WARMUP_CODE ] )
 
     import threading
     lock = threading.Lock()
