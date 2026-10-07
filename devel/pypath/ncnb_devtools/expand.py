@@ -21,6 +21,27 @@ from .nbsettings import MARKER
 
 TARGETS = ( 'test', 'launch', 'site', 'colab', 'pip', 'conda' )
 
+def _combine_extras( pkgs, name ):
+    """Combine e.g. "name", "name[a]" and "name[b]" into "name[a,b]" (at the
+    place of the first of them)."""
+    import re
+    pat = re.compile(r'^%s(\[([^\]]*)\])?$'%re.escape(name))
+    extras, res, pos = [], [], None
+    for p in pkgs:
+        m = pat.match(p)
+        if not m:
+            res.append(p)
+            continue
+        if pos is None:
+            pos = len(res)
+            res.append(None)
+        for e in ( m.group(2) or '' ).split(','):
+            if e.strip() and e.strip() not in extras:
+                extras.append(e.strip())
+    if pos is not None:
+        res[pos] = name + ( '[%s]'%','.join(sorted(extras)) if extras else '' )
+    return res
+
 class Requirements:
     """The resolved requirements of a notebook."""
 
@@ -54,8 +75,9 @@ class Requirements:
 
     @property
     def pip_packages( self ):
-        """Packages for pip installations (only if not needs_conda)."""
-        return self._collect('pip')
+        """Packages for pip installations (only if not needs_conda), with all
+        extras of the ncrystal package combined (e.g. "ncrystal[cif,plot]")."""
+        return _combine_extras( self._collect('pip'), 'ncrystal' )
 
     @property
     def conda_packages( self ):
@@ -71,6 +93,10 @@ class Requirements:
             n = conda_package_name( e, platform )
             if n and n not in res:
                 res.append(n)
+        #The ncrystal-extra and ncrystal-all packages include ncrystal:
+        if 'ncrystal' in res and ( 'ncrystal-extra' in res
+                                   or 'ncrystal-all' in res ):
+            res.remove('ncrystal')
         return res
 
     @property

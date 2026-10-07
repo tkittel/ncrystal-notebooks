@@ -114,7 +114,7 @@ conda = ["ncrystal"]
 
 [requirements.plot]
 description = "matplotlib"
-pip = ["matplotlib", "ipympl"]
+pip = ["ncrystal[plot]", "ipympl"]
 conda = ["matplotlib", "ipympl"]
 
 [requirements.widgets]
@@ -124,8 +124,10 @@ conda = ["ipywidgets"]
 
 [requirements.cif]
 description = "CIF file support (gemmi, spglib, ASE)"
-pip = ["gemmi", "spglib", "ase"]
-conda = ["gemmi", "spglib", "ase"]
+# The NCrystal packages for this, so NCrystal controls the versions (on
+# conda-forge, only ncrystal-all includes ASE):
+pip = ["ncrystal[cif]"]
+conda = ["ncrystal-all"]
 colab_setup = """
 #Avoid warnings later on Google Colab (cf. mctools/ncrystal#192):
 import gemmi
@@ -134,8 +136,8 @@ import spglib
 
 [requirements.endf]
 description = "ENDF support (endf-parserpy)"
-pip = ["endf-parserpy"]
-conda = ["endf-parserpy"]
+pip = ["ncrystal[endf]"]
+conda = ["ncrystal-all"]
 
 [requirements.pandas]
 description = "pandas"
@@ -149,6 +151,8 @@ conda = ["tqdm"]
 
 [requirements.utils]
 description = "NCrystal notebook utilities"
+# TEMPORARY: requests is listed since ncrystal-notebook-utilities 0.0.2 on PyPI
+# does not declare it as a dependency (fixed in 0.0.3, not released yet):
 pip = ["ncrystal-notebook-utilities", "requests"]
 conda = ["requests"]
 conda_pip = ["ncrystal-notebook-utilities"]
