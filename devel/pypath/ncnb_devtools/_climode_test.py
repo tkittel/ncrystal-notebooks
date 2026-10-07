@@ -19,6 +19,7 @@ def main( parser ):
     run_tests( args )
 
 def run_tests( args ):
+    import sys
     from .config import load_config
     from .nbsettings import select_notebooks
     from .expand import Requirements
@@ -49,6 +50,19 @@ def run_tests( args ):
         if unavail:
             msg = ( f'{nb.shortkey} needs {", ".join(unavail)}, which is not'
                     f' available with conda on {conda_platform()}' )
+            if args.NOTEBOOK:
+                raise SystemExit(f'ERROR: {msg}')
+            print(f'Skipping {msg}')
+            continue
+        #TEMPORARY: Building NCrystal plugins from source fails on Windows with
+        #NCrystal 4.4.6 and earlier (NCrystal.dll is not found in the
+        #temporary environment of pip's build isolation). Remove this when a
+        #NCrystal release with the fix is out:
+        srcplugins = reqs.source_plugins()
+        if srcplugins and sys.platform == 'win32':
+            msg = ( f'{nb.shortkey} needs plugins built from source'
+                    f' ({", ".join(srcplugins)}), which currently fails on'
+                    ' Windows' )
             if args.NOTEBOOK:
                 raise SystemExit(f'ERROR: {msg}')
             print(f'Skipping {msg}')

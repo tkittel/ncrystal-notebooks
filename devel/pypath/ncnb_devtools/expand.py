@@ -34,6 +34,11 @@ class Requirements:
         self.has_plot = any( r.key == 'plot' for r in self.reqs )
         self.has_widgets = any( r.key == 'widgets' for r in self.reqs )
 
+    def source_plugins( self ):
+        """Names of plugins installed from git (i.e. built from source)."""
+        return [ n for n, spec in zip( self.plugin_names, self.plugins )
+                 if 'git+' in spec ]
+
     def unavailable_with_conda( self, platform ):
         """Keys of requirements not available with conda on the platform."""
         return [ r.key for r in self.reqs
