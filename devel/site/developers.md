@@ -158,12 +158,20 @@ it.
 ## The website
 
 The website is built in CI from the main branch and published on GitHub
-Pages. All notebooks are run for it, and the versions of the notebooks for
-download and for Google Colab are generated at the same time. To build it
-locally:
+Pages. The notebooks are run for it (for now except those marked as slow), and
+the versions of the notebooks for download and for Google Colab are generated
+at the same time. To build it locally:
 
 ```
 ncnotebookdevtool site -o /some/dir
 ```
 
-(add `--no-execute` for a quick build without running the notebooks).
+(add `--no-execute` for a quick build without running the notebooks). To
+quickly see how your own notebook will look on the website, build a website
+with just that notebook, by giving its shortkey (or path):
+
+```
+ncnotebookdevtool site -o /some/dir mykey
+```
+
+and open `/some/dir/html/index.html` in a browser.

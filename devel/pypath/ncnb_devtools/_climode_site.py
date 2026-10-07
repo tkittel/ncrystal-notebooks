@@ -5,7 +5,11 @@ def main( parser ):
     parser.init( short_description() + """. All notebooks are run (as in the
     "test" mode, but with setup code for the website) and turned into a Sphinx
     website, which also provides versions of the notebooks for download and for
-    Google Colab.""" )
+    Google Colab. Give notebooks (shortkeys or paths) to build a website with
+    just those, e.g. to quickly see how a new notebook will look.""" )
+    parser.add_argument( 'NOTEBOOK', nargs = '*',
+                         help = """Notebooks to include (shortkeys or paths;
+                         default: all).""" )
     from .batch import add_batch_args
     add_batch_args( parser )
     parser.add_argument( '-o', '--output', metavar = 'DIR', required = True,
@@ -39,8 +43,9 @@ def build_site( args ):
                          cleanup_workdir )
     from .site import ( write_sources, build_html, finalize_executed,
                         links_markdown, SPHINX_PACKAGES )
+    from .nbsettings import select_notebooks
     cfg = load_config()
-    notebooks = quick_checks( cfg )
+    notebooks = select_notebooks( args.NOTEBOOK, quick_checks( cfg ) )
     out = pathlib.Path(args.output).absolute()
     out.mkdir( parents = True, exist_ok = True )
     workdir = make_workdir( args )
@@ -49,7 +54,7 @@ def build_site( args ):
     nfail = 0
     if not args.no_execute:
         torun = notebooks
-        if args.skip_slow:
+        if args.skip_slow and not args.NOTEBOOK:
             torun = [ nb for nb in notebooks if not nb.settings.slow ]
             for nb in notebooks:
                 if nb.settings.slow:
