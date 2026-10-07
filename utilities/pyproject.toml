@@ -1,8 +1,8 @@
 [project]
 name = "ncrystal-notebook-utilities"
-version = "0.0.2"
+version = "0.0.3"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [ "requests" ]
 authors = [
   { name="NCrystal developers" },
 ]
