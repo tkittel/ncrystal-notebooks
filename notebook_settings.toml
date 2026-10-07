@@ -135,7 +135,8 @@ conda = ["njoy2016"]
 
 [requirements.mcstas]
 description = "McStas"
-conda = ["mcstas-core"]
+#McStas compiles with MPI when available (and fails if mpicc is missing):
+conda = ["mcstas-core", "openmpi"]
 setup = """
 #Let McStas find its resources:
 import os
