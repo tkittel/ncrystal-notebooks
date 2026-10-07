@@ -52,7 +52,10 @@ class Config:
         self.ncrystal_min_version = g.get('ncrystal_min_version','4.0.0')
         self.max_line_length = int(g.get('max_line_length',120))
         self.timeout = int(g.get('timeout',1800))
-        self.github_repo = g.get('github_repo','mctools/ncrystal-notebooks')
+        #The repository can be overridden (e.g. for website builds in forks):
+        import os
+        self.github_repo = ( os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO')
+                             or g.get('github_repo','mctools/ncrystal-notebooks') )
         self.colab_branch = g.get('colab_branch','googlecolab')
         self.website_url = g.get('website_url','')
         self.sections = [ Section(s) for s in data.get('sections',[]) ]

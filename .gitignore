@@ -12,3 +12,7 @@ __pycache__/
 /venv/
 
 .ipynb_checkpoints/
+
+# Notebook tool
+*.ipynb.orig
+.ipynb_checkpoints/

@@ -67,7 +67,11 @@ def main():
                                   modename = mode,
                                   args = sys.argv[2:] )
 
-    import_sibling_module(mode=mode).main( parser )
+    from .envs import EnvError
+    try:
+        import_sibling_module(mode=mode).main( parser )
+    except EnvError as e:
+        raise SystemExit(f'ERROR: {e}')
 
 class ArgParser():
 
