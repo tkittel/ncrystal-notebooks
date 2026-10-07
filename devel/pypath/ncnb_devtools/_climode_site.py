@@ -26,7 +26,7 @@ def build_site( args ):
     import pathlib
     from .config import load_config
     from .expand import Requirements
-    from .envsetup import env_kind
+    from .envsetup import env_kind, conda_platform
     from .envs import venv_env
     from .batch import ( time_limit, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
@@ -46,6 +46,13 @@ def build_site( args ):
         if skipped:
             raise SystemExit('ERROR: Notebooks needing conda can not be run'
                              f' with --env=venv: {" ".join(skipped)}')
+        unavail = [ nb.shortkey for nb, k in jobs if k == 'conda' and
+                    Requirements( nb.settings, cfg ).unavailable_with_conda(
+                        conda_platform() ) ]
+        if unavail:
+            raise SystemExit('ERROR: Notebooks with requirements not available'
+                             f' with conda on {conda_platform()}:'
+                             f' {" ".join(unavail)}')
         results = run_batch( jobs, args, cfg, workdir, 'site' )
         nfail = print_summary( results, workdir,
                            time_limit( args, cfg, 'site' ) )

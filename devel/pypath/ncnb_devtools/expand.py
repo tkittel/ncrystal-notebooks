@@ -34,6 +34,11 @@ class Requirements:
         self.has_plot = any( r.key == 'plot' for r in self.reqs )
         self.has_widgets = any( r.key == 'widgets' for r in self.reqs )
 
+    def unavailable_with_conda( self, platform ):
+        """Keys of requirements not available with conda on the platform."""
+        return [ r.key for r in self.reqs
+                 if r.conda_platforms and platform not in r.conda_platforms ]
+
     def _collect( self, attr ):
         res = []
         for r in self.reqs:

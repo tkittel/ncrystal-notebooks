@@ -162,7 +162,7 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
         pkgsdir = cache_dir() / 'conda-pkgs'
         pkgsdir.mkdir( parents = True, exist_ok = True )
         cenv['CONDA_PKGS_DIRS'] = str(pkgsdir)
-        _run( [ tool, 'create', '-y', '-q', '-p', d, '--override-channels',
+        _run( [ tool, 'create', '-y', '-p', d, '--override-channels',
                 '-c', 'conda-forge' ] + cpkgs, env = cenv, log = log )
         if ppkgs:
             env.run( [ env.python, '-m', 'pip', 'install', '-q' ] + ppkgs,

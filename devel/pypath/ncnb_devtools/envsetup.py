@@ -30,6 +30,18 @@ def add_env_args( parser ):
                          help = """Python used to create venv environments
                          (default: the Python running this tool).""" )
 
+def conda_platform():
+    """The conda platform name (e.g. "linux-64") of this machine."""
+    import platform
+    import sys
+    m = platform.machine().lower()
+    os_name = { 'linux' : 'linux', 'darwin' : 'osx',
+                'win32' : 'win' }.get( sys.platform, sys.platform )
+    arch = { 'x86_64' : '64', 'amd64' : '64', 'aarch64' : 'aarch64',
+             'arm64' : ( 'arm64' if os_name == 'osx' else 'aarch64' )
+            }.get( m, m )
+    return f'{os_name}-{arch}'
+
 def env_kind( reqs, choice ):
     """The kind of environment for a notebook (None if not possible)."""
     if choice == 'auto':

@@ -22,7 +22,7 @@ def run_tests( args ):
     from .config import load_config
     from .nbsettings import select_notebooks
     from .expand import Requirements
-    from .envsetup import env_kind
+    from .envsetup import env_kind, conda_platform
     from .batch import ( time_limit, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
     cfg = load_config()
@@ -40,6 +40,15 @@ def run_tests( args ):
                 raise SystemExit(f'ERROR: {nb.shortkey} needs conda, and can'
                                  ' not run with --env=venv')
             print(f'Skipping {nb.shortkey} (needs conda)')
+            continue
+        unavail = ( reqs.unavailable_with_conda( conda_platform() )
+                    if kind == 'conda' else [] )
+        if unavail:
+            msg = ( f'{nb.shortkey} needs {", ".join(unavail)}, which is not'
+                    f' available with conda on {conda_platform()}' )
+            if args.NOTEBOOK:
+                raise SystemExit(f'ERROR: {msg}')
+            print(f'Skipping {msg}')
             continue
         jobs.append( ( nb, kind ) )
     if not jobs:

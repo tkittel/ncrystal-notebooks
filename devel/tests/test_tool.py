@@ -197,3 +197,21 @@ def test_repo_settings_file_loads():
     from ncnb_devtools.config import Config
     cfg = Config( REPO / 'notebook_settings.toml' )
     assert cfg.section('basics') and 'ncrystal' in cfg.requirements
+
+def test_conda_platforms():
+    import types
+    from ncnb_devtools.config import Requirement
+    from ncnb_devtools.expand import Requirements
+    from ncnb_devtools.envsetup import conda_platform
+    assert conda_platform().split('-')[0] in ('linux','osx','win')
+    cfg = types.SimpleNamespace(
+        requirements = { 'ncrystal' : Requirement( 'ncrystal',
+                                                   { 'pip' : ['ncrystal'] } ),
+                         'x' : Requirement( 'x', { 'conda' : ['x'],
+                                                   'conda_platforms' :
+                                                   ['linux-64'] } ) },
+        plugins = {} )
+    s = types.SimpleNamespace( requires = ['x'], plugins = [] )
+    r = Requirements( s, cfg )
+    assert r.unavailable_with_conda('linux-64') == []
+    assert r.unavailable_with_conda('osx-arm64') == ['x']

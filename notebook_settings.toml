@@ -79,6 +79,9 @@ description = "Exercises from the NEUWAVE-12 workshop."
 #   setup       : Python code added to the setup of the notebook.
 #   colab_setup : Python code added to the setup of the notebook on Google
 #                 Colab only.
+#   conda_platforms : conda platforms (e.g. "linux-64") on which the conda
+#                 packages exist, if not all. Notebooks needing the requirement
+#                 are not tested on other platforms.
 #
 # A requirement without "pip" packages is only available with conda, and
 # notebooks needing it are therefore only tested in conda environments.
@@ -133,6 +136,9 @@ local = { ncrystal-notebook-utilities = "utilities" }
 [requirements.openmc]
 description = "OpenMC"
 conda = ["openmc"]
+# Platforms on which conda-forge has OpenMC (notebooks needing it are skipped
+# elsewhere):
+conda_platforms = ["linux-64", "osx-64"]
 
 [requirements.njoy]
 description = "NJOY2016"

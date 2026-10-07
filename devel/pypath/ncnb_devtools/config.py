@@ -8,7 +8,7 @@ class ConfigError(RuntimeError):
 class Requirement:
     def __init__( self, key, data ):
         known = { 'description', 'pip', 'conda', 'conda_pip', 'local',
-                  'setup', 'colab_setup' }
+                  'setup', 'colab_setup', 'conda_platforms' }
         unknown = set(data) - known
         if unknown:
             raise ConfigError(f'requirement "{key}": unknown fields'
@@ -19,6 +19,9 @@ class Requirement:
         self.conda = list(data.get('conda',[]))
         self.conda_pip = list(data.get('conda_pip',[]))
         self.local = dict(data.get('local',{}))
+        #Conda platforms (e.g. "linux-64") on which the conda packages exist (an
+        #empty list means all platforms):
+        self.conda_platforms = list(data.get('conda_platforms',[]))
         self.setup = data.get('setup','').strip('\n')
         self.colab_setup = data.get('colab_setup','').strip('\n')
 
