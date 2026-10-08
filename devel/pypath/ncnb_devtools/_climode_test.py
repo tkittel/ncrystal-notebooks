@@ -21,6 +21,13 @@ def main( parser ):
                          and is only possible in Google's Colab runtime image
                          (as in the colab workflow of the repository).
                          Notebooks needing conda are not supported yet.""" )
+    parser.add_argument( '--write-selected', metavar = 'FILE',
+                         help = """Only write the shortkeys of the selected
+                         notebooks to this file (one per line), instead of
+                         running them. With --colab, this is also possible
+                         outside Google's Colab runtime image, e.g. for running
+                         each notebook in its own fresh container from it (as in
+                         the colab workflow).""" )
     parser.add_argument( '--select', choices = ('all','pip','conda'),
                          default = 'all',
                          help = """Only run notebooks which can be installed
@@ -46,7 +53,7 @@ def run_tests( args ):
     from .batch import ( limits_description, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
     cfg = load_config()
-    if args.colab and not in_colab_image():
+    if args.colab and not args.write_selected and not in_colab_image():
         raise SystemExit('ERROR: --colab is only possible in Google\'s Colab'
                          ' runtime image (the notebooks install their'
                          ' requirements into the current environment)')
@@ -108,6 +115,13 @@ def run_tests( args ):
         jobs.append( ( nb, kind ) )
     if not jobs:
         raise SystemExit('ERROR: No notebooks selected')
+    if args.write_selected:
+        import pathlib
+        pathlib.Path(args.write_selected).write_text(
+            ''.join( f'{nb.shortkey}\n' for nb, _ in jobs ), encoding = 'utf-8' )
+        print(f'Wrote the {len(jobs)} selected notebooks to'
+              f' {args.write_selected}')
+        return
     target = 'colabtest' if args.colab else 'test'
     workdir = make_workdir( args )
     results = run_batch( jobs, args, cfg, workdir, target )

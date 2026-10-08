@@ -182,8 +182,11 @@ it.
 
 The `colab` workflow also runs the Google Colab versions of the notebooks, with
 their installation cells, in Google's Colab runtime image (which has the same
-Python and preinstalled packages as Google Colab). It uses
-`ncnotebookdevtool test --colab`, which only works in that image. Notebooks
+Python and preinstalled packages as Google Colab). Each notebook runs in its
+own fresh container, as on Colab, where every notebook starts in a fresh
+runtime (so what one notebook installs can not hide a missing requirement of
+another). It uses `ncnotebookdevtool test --colab`, which only works in that
+image. Notebooks
 marked as slow only run in its weekly (and manually started) runs, and
 notebooks needing conda are not yet tested there.
 
