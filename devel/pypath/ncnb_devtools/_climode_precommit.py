@@ -6,7 +6,8 @@ def main( parser ):
     parser.init( short_description() + """. This removes outputs and
     non-standard metadata from all notebooks, writes them in a canonical JSON
     format (which keeps diffs readable), and runs the same quick checks as the
-    "check" mode. Notebooks are not run.""" )
+    "check" mode, and (if ruff is available) the "lint" mode. Notebooks are
+    not run.""" )
     parser.add_argument( 'NOTEBOOK', nargs = '*',
                          help = """Notebooks (shortkeys or paths; default:
                          all).""" )
@@ -42,3 +43,11 @@ def main( parser ):
         raise SystemExit(1)
     n = len(notebooks)
     print(f'All {n} notebook{"s" if n != 1 else ""} OK')
+    from ._climode_lint import find_ruff, lint
+    if not find_ruff():
+        print('Note: install ruff (e.g. "pip install ruff") to also lint the'
+              ' code, as in CI')
+    elif not lint( notebooks = notebooks ):
+        raise SystemExit('ERROR: Linting failed (see above)')
+    else:
+        print('Lint OK')

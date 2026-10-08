@@ -1,6 +1,7 @@
 """Tests of devel/bin/ncnotebookdevtool (which do not run notebooks)."""
 
 import json
+import shutil
 
 import pytest
 from conftest import INTRO, REPO, SETTINGS, make_nb, run_tool
@@ -448,3 +449,24 @@ def test_test_parameters_in_several_cells( fakerepo ):
         'n = 1000\nprint(n == 1)', head + 'n = 10', 'm = 2000', head + 'm = 20',
         'print(n,m)' ]
     assert len( { c['id'] for c in e['cells'] } ) == len( e['cells'] )
+
+@pytest.mark.skipif( shutil.which('ruff') is None, reason = 'needs ruff' )
+def test_lint( fakerepo ):
+    #The generated setup code is included (no "undefined name NC"):
+    assert 'Lint OK' in run_tool( 'lint' ).stdout
+    #A problem in a notebook is reported for its path in the repository:
+    _write_md_nb( fakerepo, 'Text' )
+    f = fakerepo / 'notebooks' / 'one.ipynb'
+    nb = json.loads( f.read_text() )
+    nb['cells'].append( make_nb( [ ('code', 'x = None\nprint(x == None)') ]
+                                 )['cells'][0] )
+    f.write_text( json.dumps(nb) )
+    run_tool( 'precommit', check = False )
+    p = run_tool( 'lint', check = False )
+    assert p.returncode != 0
+    assert 'notebooks/one.ipynb:cell 4:2:12: E711' in p.stdout
+    #Packages imported but not used are fine in notebooks:
+    nb['cells'][-1] = make_nb( [ ('code', 'import os') ] )['cells'][0]
+    f.write_text( json.dumps(nb) )
+    run_tool( 'precommit', check = False )
+    assert 'Lint OK' in run_tool( 'lint' ).stdout

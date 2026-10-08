@@ -206,6 +206,20 @@ This brings all notebooks into the canonical form and checks them (it is fast,
 and does not run them). The same checks run in CI, and fail if a notebook is
 not in canonical form.
 
+If [ruff](https://docs.astral.sh/ruff/) is installed (e.g. `pip install ruff`),
+`precommit` also lints the code, as CI always does (this can also be done
+alone with `ncnotebookdevtool lint`):
+
+* The code in the notebooks is only checked for a few simple things: syntax
+  errors, undefined names, misplaced statements (like `return` outside a
+  function), and comparisons that should be written differently (e.g.
+  `x is None` instead of `x == None`, and `a not in b` instead of
+  `not a in b`). Things that are often fine in notebooks, like imports which
+  are only used in later exercises, are allowed.
+* The Python code of the repository itself (the `ncnotebookdevtool` and the
+  utilities package) is checked strictly, with the rules in `ruff.toml`.
+  `ncnotebookdevtool lint --fix` lets ruff fix what it can there.
+
 ## Running the notebooks
 
 To run notebooks as in CI:

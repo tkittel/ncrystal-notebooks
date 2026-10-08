@@ -26,10 +26,14 @@ jobs:
         python-version: '3.12'
     - name: Quick checks of all notebooks
       run: python devel/bin/ncnotebookdevtool check
+    #(ruff is pinned, since new versions can add rules, which should not make
+    #CI fail unexpectedly. Update it deliberately.)
+    - name: Install pytest and ruff
+      run: python -m pip install pytest ruff==0.16.10
+    - name: Lint the Python code and the notebooks
+      run: python devel/bin/ncnotebookdevtool lint
     - name: Tests of ncnotebookdevtool
-      run: |
-        python -m pip install pytest
-        python -m pytest -v devel/tests
+      run: python -m pytest -v devel/tests
 
   pip:
     needs: [ checks ]
