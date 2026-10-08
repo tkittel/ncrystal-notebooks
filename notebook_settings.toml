@@ -194,10 +194,14 @@ import os
 import shutil
 import subprocess
 if 'MCSTAS' not in os.environ:
-    os.environ['MCSTAS'] = subprocess.run(
+    _p = subprocess.run(
         [shutil.which('mcrun') or 'mcrun','--showcfg=resourcedir'],
-        capture_output=True, check=True
-    ).stdout.decode().strip()
+        capture_output=True, text=True
+    )
+    if _p.returncode != 0:
+        raise RuntimeError('McStas does not work (mcrun failed):\\n'
+                           + _p.stdout + _p.stderr)
+    os.environ['MCSTAS'] = _p.stdout.strip()
 """
 colab_setup = """
 import pathlib
