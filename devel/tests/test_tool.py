@@ -369,3 +369,22 @@ def test_heading_keys( fakerepo ):
     for target in ('pip','conda','colab','colabtest'):
         assert last(target) == ( 'See [the results](#one-res).\n\n'
                                  '<a id="one-res"></a>\n\n' + rest )
+
+def test_time_limits_are_whole_seconds( fakerepo, monkeypatch ):
+    #The time limits are passed to _nbexec.py, which needs whole seconds (also
+    #on Windows, where they are multiplied by windows_time_factor):
+    import sys
+    import types
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.batch import time_limits
+    cfg = load_config()
+    args = types.SimpleNamespace( time_limit = None )
+    for platform in ('linux','win32'):
+        monkeypatch.setattr( sys, 'platform', platform )
+        for target in ('test','colabtest','site'):
+            for slow in (False,True):
+                limit, _ = time_limits( args, cfg, target, slow )
+                assert isinstance( limit, int ), (platform,target,slow,limit)
+    monkeypatch.setattr( sys, 'platform', 'win32' )
+    cfg.windows_time_factor = 1.5
+    assert time_limits( args, cfg, 'test', False )[0] == 60

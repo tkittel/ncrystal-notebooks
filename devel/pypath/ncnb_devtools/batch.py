@@ -54,7 +54,10 @@ def normal_time_limit( cfg, target ):
     import sys
     normal = cfg.max_test_time if is_test(target) else cfg.max_full_time
     if sys.platform == 'win32':
-        normal *= cfg.windows_time_factor
+        #(Whole seconds, as the notebooks are run with a time limit in whole
+        #seconds, see _nbexec.py.)
+        import math
+        normal = math.ceil( normal * cfg.windows_time_factor )
     return normal
 
 def is_test( target ):
