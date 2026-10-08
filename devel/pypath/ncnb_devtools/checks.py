@@ -144,6 +144,49 @@ def check_all( notebooks, cfg ):
                                   f' {seen[v]}' ) )
                 else:
                     seen[v] = nb.relpath
+    res += notebook_link_problems( notebooks )
+    #The order of the notebooks in each section must be unambiguous:
+    seen = {}
+    for nb in notebooks:
+        if nb.settings:
+            k = ( nb.settings.section, nb.settings.sort_value )
+            if k in seen:
+                res.append( ( nb.relpath, f'sort-value {k[1]} is also used'
+                              f' by {seen[k]} (in the same section)' ) )
+            else:
+                seen[k] = nb.relpath
+    return res
+
+def notebook_link_problems( notebooks ):
+    """Problems with links to other notebooks, [text](nb:shortkey) or
+    [text](nb:shortkey:key), as (relpath, problem) pairs."""
+    from .headings import NOTEBOOK_LINK_RE, find_headings, notebook_links
+    def markdown( nb ):
+        return [ source_str(c) for c in nb.nb['cells']
+                 if c['cell_type'] == 'markdown' ]
+    keys = {}
+    for nb in notebooks:
+        if nb.settings:
+            keys[nb.settings.shortkey] = { h.key for src in markdown(nb)
+                                           for h in find_headings(src) }
+    res = []
+    for nb in notebooks:
+        if not nb.settings:
+            continue
+        for src in markdown(nb):
+            for link in notebook_links(src):
+                m = NOTEBOOK_LINK_RE.match(link)
+                if not m:
+                    res.append( ( nb.relpath, f'invalid link "nb:{link}"'
+                                  ' (expected nb:shortkey or nb:shortkey:key)'
+                                  ) )
+                elif m.group(1) not in keys:
+                    res.append( ( nb.relpath, f'link "nb:{link}" to unknown'
+                                  f' notebook "{m.group(1)}"' ) )
+                elif m.group(2) and m.group(2) not in keys[m.group(1)]:
+                    res.append( ( nb.relpath, f'link "nb:{link}": notebook'
+                                  f' "{m.group(1)}" has no section with key'
+                                  f' "{m.group(2)}"' ) )
     return res
 
 def report( problems ):

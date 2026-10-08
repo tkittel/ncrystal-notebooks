@@ -93,7 +93,14 @@ class Config:
                              or g.get('github_repo',
                                       'mctools/ncrystal-notebooks') )
         self.colab_branch = g.get('colab_branch','googlecolab')
-        self.website_url = g.get('website_url','')
+        #(Forks have their website at https://OWNER.github.io/REPO:)
+        if os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO'):
+            owner, repo = self.github_repo.split('/')
+            self.website_url = f'https://{owner}.github.io/{repo}'
+        else:
+            self.website_url = g.get('website_url',
+                                     'https://mctools.github.io/ncrystal-notebooks')
+        self.website_url = self.website_url.rstrip('/')
         self.sections = [ Section(s) for s in data.get('sections',[]) ]
         keys = [ s.key for s in self.sections ]
         if len(set(keys)) != len(keys):

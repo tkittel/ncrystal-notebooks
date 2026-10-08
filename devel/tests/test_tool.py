@@ -53,30 +53,27 @@ def test_precommit_strips_outputs_and_metadata( fakerepo ):
 #The start of the settings cells in test_settings_errors:
 _HDR = '# NCrystal notebook settings\n# title: T\n# menutitle: M\n'
 
+#(Section and sort-value lines for the settings below:)
+_SEC = '\n# section: basics\n# sort-value: 100'
+
 @pytest.mark.parametrize( 'settings, error', [
     ( 'x = 1', 'must start with' ),
     ( _HDR + '# shortkey: one', 'missing "section"' ),
-    ( _HDR + '# shortkey: Bad_Key\n# section: basics',
-      'invalid shortkey' ),
-    ( _HDR + '# shortkey: abcdefghijklmno\n# section: basics',
-      'invalid shortkey' ),
-    ( _HDR + '# shortkey: k\n# section: basics\n# foo: bar',
-      'unknown key' ),
-    ( _HDR + '# shortkey: k\n# section: nosuch',
+    ( _HDR + '# shortkey: Bad_Key' + _SEC, 'invalid shortkey' ),
+    ( _HDR + '# shortkey: abcdefghijklmno' + _SEC, 'invalid shortkey' ),
+    ( _HDR + '# shortkey: k' + _SEC + '\n# foo: bar', 'unknown key' ),
+    ( _HDR + '# shortkey: k\n# section: nosuch\n# sort-value: 100',
       'unknown section' ),
-    ( _HDR + '# shortkey: k\n# section: basics\n# requires: nosuch',
+    ( _HDR + '# shortkey: k' + _SEC + '\n# requires: nosuch',
       'unknown requirement' ),
-    ( _HDR + '# shortkey: k\n# section: basics\n# plugins: Nosuch',
-      'unknown plugin' ),
-    ( _HDR + '# shortkey: one\n# section: basics',
-      'shortkey "one" is also used' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n'
-      '# section: basics', 'missing "menutitle"' ),
+    ( _HDR + '# shortkey: k' + _SEC + '\n# plugins: Nosuch', 'unknown plugin' ),
+    ( _HDR + '# shortkey: one' + _SEC, 'shortkey "one" is also used' ),
+    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k' + _SEC,
+      'missing "menutitle"' ),
     ( '# NCrystal notebook settings\n# title: T\n# menutitle: ' + 'x'*31
-      + '\n# shortkey: k\n# section: basics', 'longer than 30 characters' ),
+      + '\n# shortkey: k' + _SEC, 'longer than 30 characters' ),
     ( '# NCrystal notebook settings\n# title: T\n# menutitle: Menu Notebook one'
-      '\n# shortkey: k\n# section: basics',
-      'menutitle "Menu Notebook one" is also used' ),
+      '\n# shortkey: k' + _SEC, 'menutitle "Menu Notebook one" is also used' ),
 ] )
 def test_settings_errors( fakerepo, settings, error ):
     nb = make_nb( [ ('code', settings), ('markdown','text') ] )
@@ -166,7 +163,8 @@ def _write_params_nb( fakerepo, settings_extra, tags = (),
                       code = ( 'n = 1000000', 'print(n)' ) ):
     f = fakerepo / 'notebooks' / 'one.ipynb'
     nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
-                                              key = 'one' ) + settings_extra ),
+                                              key = 'one', value = 100 )
+                             + settings_extra ),
                     ('markdown', INTRO) ] + [ ('code', c) for c in code ] )
     if tags:
         nb['cells'][2]['metadata']['tags'] = list(tags)
@@ -219,7 +217,7 @@ def test_conda_only_requirement():
     from ncnb_devtools.expand import Requirements
     from ncnb_devtools.nbsettings import NotebookSettings
     cfg = load_config()
-    s = NotebookSettings( SETTINGS.format( title = 'T', key = 'k' )
+    s = NotebookSettings( SETTINGS.format( title = 'T', key = 'k', value = 100 )
                           + ', openmc\n# plugins: Dummy' )
     reqs = Requirements( s, cfg )
     assert reqs.needs_conda
@@ -248,7 +246,7 @@ def test_expand_mode( tmp_path ):
 def test_repo_settings_file_loads():
     from ncnb_devtools.config import Config
     cfg = Config( REPO / 'notebook_settings.toml' )
-    assert cfg.section('basics') and 'ncrystal' in cfg.requirements
+    assert cfg.section('start') and 'ncrystal' in cfg.requirements
 
 def test_conda_platforms():
     import types
@@ -275,7 +273,7 @@ def test_hidden_input( fakerepo ):
     from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     f = fakerepo / 'notebooks' / 'one.ipynb'
     nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
-                                              key = 'one' ) ),
+                                              key = 'one', value = 100 ) ),
                     ('markdown', INTRO),
                     ('code', 'x = 1'),
                     ('code', 'y = 2'),
@@ -310,6 +308,8 @@ def test_createnew( fakerepo ):
     assert f.is_file()
     assert 'notebooks OK' in run_tool( 'check' ).stdout
     assert 'newnb          A new notebook' in run_tool( 'list' ).stdout
+    #(Placed last in its section by default:)
+    assert '# sort-value: 300' in f.read_text()
     #Errors: existing shortkey, unknown section, missing option:
     for change, err in [ ( {}, 'already used' ),
                          ( { '--shortkey' : 'other', '--title' : 'Other',
@@ -375,7 +375,7 @@ def test_settings_tables_in_developer_docs():
 def _write_md_nb( fakerepo, md ):
     f = fakerepo / 'notebooks' / 'one.ipynb'
     nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
-                                              key = 'one' ) ),
+                                              key = 'one', value = 100 ) ),
                     ('markdown', INTRO),
                     ('markdown', md) ] )
     f.write_text( json.dumps(nb) )
@@ -416,8 +416,9 @@ def test_heading_keys( fakerepo ):
     #In the versions for users, the keys become anchors with ids (with the
     #shortkey of the notebook), which links to sections use:
     rest = '## Results\n\n#### Details\n\n```\n## code [x]\n```'
-    assert last('site') == ( 'See [the results](#one-res).\n\n{#one-res}\n'
-                             + rest )
+    #(On the website, also a label for links from other pages:)
+    assert last('site') == ( 'See [the results](#one-res).\n\n(nb-one-res)=\n'
+                             '{#one-res}\n' + rest )
     for target in ('pip','conda','colab','colabtest'):
         assert last(target) == ( 'See [the results](#one-res).\n\n'
                                  '<a id="one-res"></a>\n\n' + rest )
@@ -584,3 +585,49 @@ def test_output_is_prefixed():
     p = run_tool( 'check', 'nosuchnotebook', check = False )
     assert p.returncode == 1
     assert p.stderr.startswith(f'{PRINT_PREFIX} ERROR: Unknown notebook')
+
+def test_links_to_other_notebooks( fakerepo ):
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.expand import expand
+    from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    _write_md_nb( fakerepo, '## Results [res]\nSee [two](nb:two) and'
+                  ' [its intro](nb:two:intro), and [mine](nb:one:res).' )
+    assert 'notebooks OK' in run_tool( 'check' ).stdout
+    nb = select_notebooks( ['one'], find_notebooks() )[0]
+    cfg = load_config()
+    def last( target ):
+        return source_str( expand( nb, cfg, target )['cells'][-1] )
+    assert last('launch').endswith( '[mine](nb:one:res).' )
+    assert last('site').endswith( 'See [two](two.ipynb) and [its intro]'
+                                  '(#nb-two-intro), and [mine](#nb-one-res).' )
+    url = cfg.website_url + '/notebooks'
+    assert url.startswith('https://')
+    assert last('colab').endswith( f'See [two]({url}/two.html) and [its intro]'
+                                   f'({url}/two.html#two-intro), and [mine]'
+                                   f'({url}/one.html#one-res).' )
+
+@pytest.mark.parametrize( 'link, error', [
+    ( 'nb:three', 'unknown notebook "three"' ),
+    ( 'nb:two:nosuch', 'has no section with key "nosuch"' ),
+    ( 'nb:Two', 'invalid link "nb:Two"' ),
+] )
+def test_bad_links_to_other_notebooks( fakerepo, link, error ):
+    _write_md_nb( fakerepo, f'See [this]({link}).' )
+    p = run_tool( 'check', check = False )
+    assert p.returncode != 0 and error in p.stdout
+
+def test_sort_value( fakerepo ):
+    #Notebooks are listed by sort-value (larger values later), which must be
+    #unique in each section:
+    out = run_tool( 'list' ).stdout
+    assert out.index(' one ') < out.index(' two ')
+    nbfile = fakerepo / 'notebooks' / 'one.ipynb'
+    nbfile.write_text( nbfile.read_text().replace( 'sort-value: 100',
+                                                   'sort-value: 300' ) )
+    out = run_tool( 'list' ).stdout
+    assert out.index(' two ') < out.index(' one ')
+    nbfile.write_text( nbfile.read_text().replace( 'sort-value: 300',
+                                                   'sort-value: 200' ) )
+    p = run_tool( 'check', check = False )
+    assert p.returncode != 0 and 'sort-value 200 is also used' in p.stdout

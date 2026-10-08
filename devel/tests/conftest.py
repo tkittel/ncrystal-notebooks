@@ -50,7 +50,8 @@ INTRO = '## Introduction [intro]\nSome text.'
 
 SETTINGS = ( '# NCrystal notebook settings\n# title: {title}\n'
              '# menutitle: Menu {title}\n'
-             '# shortkey: {key}\n# section: basics\n# requires: plot' )
+             '# shortkey: {key}\n# section: basics\n# sort-value: {value}\n'
+             '# requires: plot' )
 
 @pytest.fixture
 def fakerepo( tmp_path, monkeypatch ):
@@ -60,9 +61,9 @@ def fakerepo( tmp_path, monkeypatch ):
                      tmp_path / 'devel' / 'codcache' )
     nbdir = tmp_path / 'notebooks'
     nbdir.mkdir()
-    for key in ('one','two'):
+    for value, key in ( (100,'one'), (200,'two') ):
         nb = make_nb( [ ('code', SETTINGS.format( title = f'Notebook {key}',
-                                                  key = key ) ),
+                                                  key = key, value = value ) ),
                         ('markdown', INTRO),
                         ('code', 'x = NC.load("Al_sg225.ncmat")') ] )
         ( nbdir / f'{key}.ipynb' ).write_text( json.dumps(nb) )

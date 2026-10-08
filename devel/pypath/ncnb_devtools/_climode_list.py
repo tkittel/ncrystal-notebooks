@@ -14,13 +14,12 @@ def main( parser ):
                          help='Also show the paths of the notebooks.' )
     args = parser.parse_args()
     from .config import load_config
-    from .nbsettings import find_notebooks, select_notebooks
+    from .nbsettings import find_notebooks, section_notebooks, select_notebooks
     cfg = load_config()
     notebooks = select_notebooks( args.NOTEBOOK, find_notebooks() )
     nshown = 0
     for section in cfg.sections:
-        nbs = [ nb for nb in notebooks
-                if nb.settings and nb.settings.section == section.key ]
+        nbs = section_notebooks( notebooks, section.key )
         if not nbs and args.NOTEBOOK:
             continue
         print_msg(f'{section.title} [{section.key}]:')

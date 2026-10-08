@@ -59,35 +59,52 @@ website_url = "https://mctools.github.io/ncrystal-notebooks"
 
 ################################################################################
 # Sections, in the order they are shown on the website. Each notebook declares
-# the key of its section in its settings cell.
+# the key of its section in its settings cell (and its order in the section
+# with sort-value). The description is shown on the page of the section,
+# above the list of its notebooks.
 
 [[sections]]
-key = "basics"
-title = "Basic introduction to NCrystal"
-description = """Start here, to get a solid foundation and learn about the \
-basic NCrystal objects and what they provide."""
+key = "start"
+title = "Getting started"
+description = """Start here to learn the basics of NCrystal: how to load \
+materials and use them from Python, and which materials and data come with \
+NCrystal."""
+
+[[sections]]
+key = "montecarlo"
+title = "Monte Carlo simulations"
+description = """NCrystal provides the scattering physics of materials to \
+Monte Carlo simulation codes. These notebooks give an overview of the codes it \
+can be used with, and show how to use NCrystal materials in NCrystal's own \
+simple MiniMC engine, in OpenMC, and in McStas (with a McStas installation, or \
+with the pip-installable mccode-antlr)."""
 
 [[sections]]
 key = "materials"
-title = "Creating new materials"
-description = """For people wishing to create new material definitions, from \
-the basic ingredients to crystal structures and phonons."""
+title = "Creating materials"
+description = """How to create new material definitions: composing \
+materials with the NCMATComposer, crystal structures from CIF files and online \
+databases, phonons from Quantum Espresso, and polymers in the functional group \
+approximation."""
 
 [[sections]]
-key = "misc"
-title = "Miscellaneous"
-description = "Notebooks about specific features and applications."
+key = "physics"
+title = "Physics and models"
+description = """A closer look at some of the physics in NCrystal: from \
+phonon densities of states to scattering kernels, extinction, in-scattering, \
+and texture."""
 
 [[sections]]
-key = "nd2025"
-title = "Contributed: ND2025 conference"
-description = """Notebooks from the International Conference on Nuclear Data \
-for Science and Technology (ND2025)."""
+key = "applications"
+title = "Applications"
+description = """Worked examples of typical applications: neutron filters, \
+the transmission through sample containers, and telling water from ice."""
 
 [[sections]]
-key = "neuwave12"
-title = "Contributed: NEUWAVE-12 workshop"
-description = "Exercises from the NEUWAVE-12 workshop."
+key = "ndexport"
+title = "Nuclear data export (ENDF/ACE)"
+description = """Exporting NCrystal materials as nuclear data in the ENDF \
+format, and as ACE files (with NJOY) for use in OpenMC."""
 
 ################################################################################
 # Requirements, which notebooks declare in their settings cell (NCrystal itself

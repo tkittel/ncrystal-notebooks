@@ -6,10 +6,9 @@ def short_description():
 
 def main( parser ):
     parser.init( short_description() + """. Asks for the title, menu title,
-    shortkey, section, requirements and plugins of the new notebook (unless
-    given with
-    the options below), and creates it with its settings cell, ready for
-    editing with the launch mode.""" )
+    shortkey, section, sort-value, requirements and plugins of the new
+    notebook (unless given with the options below), and creates it with its
+    settings cell, ready for editing with the launch mode.""" )
     parser.add_argument( '--title', help = 'Title of the notebook.' )
     parser.add_argument( '--menutitle', help = """Short title of the notebook
                          (at most 30 characters), for the menu of the
@@ -17,6 +16,11 @@ def main( parser ):
     parser.add_argument( '--shortkey', help = """Short unique key (lowercase
                          letters and digits, at most 14 characters).""" )
     parser.add_argument( '--section', help = 'Key of the section.' )
+    parser.add_argument( '--sort-value', metavar = 'N',
+                         help = """Order in the section (an integer; larger
+                         values come later; default: 100 more than the largest
+                         value in the section, so the notebook comes
+                         last).""" )
     parser.add_argument( '--requires', metavar = 'REQS',
                          help = """Requirements, separated by commas (use
                          "none" for none).""" )
@@ -90,6 +94,7 @@ def createnew( args ):
         SettingsError,
         _shortkey_re,
         find_notebooks,
+        section_notebooks,
     )
     cfg = load_config()
     notebooks = find_notebooks()
@@ -145,6 +150,29 @@ def createnew( args ):
     section = ask.get( args.section, '--section', 'Section', check_section,
                        default = cfg.sections[0].key )
 
+    in_section = section_notebooks( notebooks, section )
+    taken_values = { nb.settings.sort_value for nb in in_section }
+    if args.sort_value is None and ask.interactive and in_section:
+        print_msg('Notebooks in the section, by sort-value:')
+        for nb in in_section:
+            print_msg(f'  {nb.settings.sort_value:>6}  {nb.settings.shortkey}')
+    def check_sort_value( v ):
+        try:
+            v = int(v)
+        except ValueError:
+            return 'The sort-value must be an integer'
+        if v in taken_values:
+            return ( 'This sort-value is already used by another notebook in'
+                     ' the section' )
+        return None
+    #(Without a terminal to ask, the default is used: last in the section)
+    default_sort_value = str( max( taken_values, default = 0 ) + 100 )
+    sort_value = int( ask.get(
+        args.sort_value if ( args.sort_value is not None or ask.interactive )
+        else default_sort_value, '--sort-value',
+        'Sort-value (larger values come later)', check_sort_value,
+        default = default_sort_value ) )
+
     if args.requires is None and ask.interactive:
         print_msg('Requirements besides NCrystal:')
         for key, r in cfg.requirements.items():
@@ -188,7 +216,8 @@ def createnew( args ):
 
     lines = [ HEADER, f'# title: {title}', f'# menutitle: {menutitle}',
               f'# shortkey: {shortkey}',
-              f'# section: {section}' ]
+              f'# section: {section}',
+              f'# sort-value: {sort_value}' ]
     if requires:
         lines.append( '# requires: ' + ', '.join(requires) )
     if plugins:

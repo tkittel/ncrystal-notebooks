@@ -320,7 +320,8 @@ def expand( nb, cfg, target, links_markdown = None, *,
             hide_input( c )
         if c['cell_type'] == 'markdown':
             c['source'] = replace_keys_with_anchors( source_str(c), target,
-                                                     s.shortkey )
+                                                     s.shortkey,
+                                                     cfg.website_url )
     out['cells'] = new + rest
     return out
 

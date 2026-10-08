@@ -19,6 +19,7 @@ import shutil
 
 from .dirs import reporoot
 from .expand import Requirements, expand
+from .nbsettings import section_notebooks
 
 SPHINX_PACKAGES = [ 'sphinx', 'myst-nb', 'sphinx-book-theme' ]
 
@@ -58,6 +59,8 @@ html_theme_options = {{
     'use_repository_button' : True,
     'path_to_docs' : '',
     'show_toc_level' : 2,
+    #The notebooks of the sections are shown in the menu:
+    'show_navbar_depth' : 2,
     #No table of contents to the right of the front page:
     'secondary_sidebar_items' : {{ '**' : [ 'page-toc' ], 'index' : [] }},
     #(The search field is in the sidebar, so the header should not have
@@ -95,8 +98,6 @@ html[data-theme=dark] { --ncnb-output-bg: #2a2619; --ncnb-output-bar: #6b5f35; }
   font-size: 1.45rem; margin-top: 1.1em !important;
   margin-bottom: 0.15em !important; }
 .bd-article section:has(> ul.ncnb-list) > .toctree-wrapper { display: none; }
-p.ncnb-section-desc { margin: 0 0 0.25em 0 !important; font-size: 0.9em;
-                      opacity: 0.8; }
 ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
 ul.ncnb-list li { margin: 0.05em 0 !important; }
 .bd-sidebar-primary .sidebar-primary-item:has(> .navbar-brand.logo) {
@@ -214,35 +215,47 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
             json.dumps( expand( nb, cfg, 'colab' ), indent = 1 ),
             encoding = 'utf-8' )
 
-    #The index page, with the notebooks by section:
+    #A page for each section, with its description and its notebooks, and the
+    #index page, with the notebooks of all sections:
+    ( srcdir / 'sections' ).mkdir()
     lines = [ '# NCrystal notebooks', '',
               ( reporoot() / 'devel' / 'site' / 'index_intro.md'
                 ).read_text( encoding = 'utf-8' ).strip(), '' ]
+    shown = []
     for section in cfg.sections:
-        nbs = [ nb for nb in notebooks if nb.settings.section == section.key ]
+        nbs = section_notebooks( notebooks, section.key )
         if not nbs:
             continue
-        lines += [ f'## {section.title}', '' ]
-        #Raw HTML, for a compact layout (see CSS above):
-        html = []
+        shown.append( section )
+        page = [ f'# {section.title}', '' ]
         if section.description:
-            html.append( '<p class="ncnb-section-desc">'
-                         + htmllib.escape(section.description) + '</p>' )
-        html.append( '<ul class="ncnb-list">' )
-        for nb in nbs:
-            html.append( f'<li><a href="notebooks/{nb.settings.shortkey}.html">'
-                         + htmllib.escape(nb.settings.title) + '</a></li>' )
-        html.append( '</ul>' )
-        lines += [ '\n'.join(html), '' ]
-        lines += [ '```{toctree}', ':hidden:', f':caption: {section.title}',
-                   '' ]
+            page += [ section.description, '' ]
+        page += [ notebook_list( nbs, '../notebooks' ), '',
+                  '```{toctree}', ':hidden:', '' ]
         #(The menu shows the short menu titles of the notebooks:)
-        lines += [ f'{nb.settings.menutitle} <notebooks/{nb.settings.shortkey}>'
-                   for nb in nbs ]
-        lines += [ '```', '' ]
+        page += [ f'{nb.settings.menutitle}'
+                  f' <../notebooks/{nb.settings.shortkey}>' for nb in nbs ]
+        page += [ '```', '' ]
+        ( srcdir / 'sections' / f'{section.key}.md' ).write_text(
+            '\n'.join(page), encoding = 'utf-8' )
+        lines += [ f'## [{section.title}](sections/{section.key}.md)', '',
+                   notebook_list( nbs, 'notebooks' ), '' ]
+    lines += [ '```{toctree}', ':hidden:', '' ]
+    lines += [ f'sections/{section.key}' for section in shown ]
+    lines += [ '```', '' ]
     lines += [ '```{toctree}', ':hidden:', ':caption: Development', '',
                'developers', '```', '' ]
     ( srcdir / 'index.md' ).write_text( '\n'.join(lines), encoding = 'utf-8' )
+
+def notebook_list( notebooks, nbdir ):
+    """List of links to the notebooks (with their titles), as raw HTML for a
+    compact layout (see CSS above)."""
+    html = [ '<ul class="ncnb-list">' ]
+    for nb in notebooks:
+        html.append( f'<li><a href="{nbdir}/{nb.settings.shortkey}.html">'
+                     + htmllib.escape(nb.settings.title) + '</a></li>' )
+    html.append( '</ul>' )
+    return '\n'.join(html)
 
 def finalize_executed( nbdict ):
     """Clean up an executed notebook for the website."""

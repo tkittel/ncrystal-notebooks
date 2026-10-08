@@ -60,8 +60,8 @@ To add a new notebook, run:
 ncnotebookdevtool createnew
 ```
 
-This asks for the title, menu title, shortkey, section, requirements and
-plugins of the notebook, creates it with its settings cell (by default as
+This asks for the title, menu title, shortkey, section, sort-value,
+requirements and plugins of the notebook, creates it with its settings cell (by default as
 `notebooks/SHORTKEY/SHORTKEY.ipynb`), and tells you how to `launch` it for
 editing.
 
@@ -76,6 +76,7 @@ declaring what the notebook is and what it needs. For example:
 # menutitle: Materials from CIF files
 # shortkey: cif
 # section: materials
+# sort-value: 200
 # requires: plot, cif
 ```
 
@@ -90,6 +91,10 @@ The keys are:
   It is used in URLs (so it should never change) and on the command line.
 * `section`: The section of the website in which the notebook is listed (one
   of the [available sections](#available-requirements-and-plugins)).
+* `sort-value`: An integer giving the order of the notebooks in the section:
+  larger values come later. Notebooks in the same section must have different
+  values. New notebooks get a value 100 larger than the largest in their
+  section, so they come last.
 * `requires`: What the notebook needs besides NCrystal, e.g. `plot` for
   matplotlib or `openmc` for OpenMC. These are names of requirements defined
   for all notebooks, not package names, and never with versions: see the
@@ -184,10 +189,19 @@ To link to a section of the same notebook from a markdown cell, use its key:
 See [the results](#results) below.
 ```
 
+To link to another notebook, or to a section of it, use its shortkey (and the
+key of the section):
+
+```
+See [the sapphire filter](nb:sapphirefilter), and [its results](nb:sapphirefilter:results).
+```
+
 Such links work on the website and in the notebooks for download and for
-Google Colab (not while editing the notebook, where the keys are still part of
-the headings). The quick checks (e.g. `ncnotebookdevtool precommit`) report
-missing, invalid or duplicate keys, and links to keys which do not exist.
+Google Colab, where links to other notebooks go to their pages on the website
+(not while editing the notebook, where the keys are still part of the
+headings). The quick checks (e.g. `ncnotebookdevtool precommit`) report
+missing, invalid or duplicate keys, and links to notebooks or keys which do
+not exist.
 
 ## Available requirements and plugins
 
@@ -268,7 +282,9 @@ the tool then continues with the next cells in a new kernel, as Colab does.
 ## The website
 
 The website is built in CI from the main branch and published on GitHub
-Pages. The notebooks are run for it (for now except those marked as slow), and
+Pages. Each section has a page, with a description of the section (from
+`notebook_settings.toml`) and its notebooks. The notebooks are run for the
+website (for now except those marked as slow), and
 the versions of the notebooks for download and for Google Colab are generated
 at the same time. To build it locally:
 
