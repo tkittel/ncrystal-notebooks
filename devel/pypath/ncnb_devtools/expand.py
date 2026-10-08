@@ -230,7 +230,9 @@ def colab_install_cells( reqs ):
     first = [
         '#Install conda on Google Colab. This restarts the kernel, so the',
         '#notebook will say that it crashed. This is expected!',
-        '%pip -q install condacolab',
+        #(Pinned until condacolab 0.2, with a new installation method based on
+        #Pixi, has been tested:)
+        '%pip -q install "condacolab<0.2"',
         'import condacolab',
         'condacolab.install_miniforge()' ]
     #The packages are installed together with openssl from conda-forge:
