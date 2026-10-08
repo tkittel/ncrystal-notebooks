@@ -320,3 +320,52 @@ def test_settings_tables_in_developer_docs():
     for key in list(cfg.requirements) + list(cfg.plugins):
         if key != 'ncrystal':
             assert f'| `{key}` |' in md
+
+def _write_md_nb( fakerepo, md ):
+    f = fakerepo / 'notebooks' / 'one.ipynb'
+    nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
+                                              key = 'one' ) ),
+                    ('markdown', md) ] )
+    f.write_text( json.dumps(nb) )
+    run_tool( 'precommit', check = False )
+
+@pytest.mark.parametrize( 'md, error', [
+    ( '## Results', 'no key at the end' ),
+    ( '## Results [Results]', 'invalid key "Results"' ),
+    ( '## Results [r123456789x]', 'invalid key "r123456789x"' ),
+    ( '## Results [1abc]', 'invalid key "1abc"' ),
+    ( '## Results [re-s]', 'invalid key "re-s"' ),
+    ( '## A [a]\n\n### B [a]', 'the key "a" is also used' ),
+    ( '# Results [res]', 'single #' ),
+    ( '#### Details [det]', 'only ## and ### headings have keys' ),
+    ( 'See [here](#nosuch).\n\n## Results [res]', 'link to "#nosuch"' ),
+] )
+def test_heading_key_errors( fakerepo, md, error ):
+    _write_md_nb( fakerepo, md )
+    p = run_tool( 'check', check = False )
+    assert p.returncode != 0 and error in p.stdout
+
+def test_heading_keys( fakerepo ):
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    from ncnb_devtools.expand import expand
+    from ncnb_devtools.nbfile import source_str
+    md = ( 'See [the results](#res).\n## Results [res] ##\n\n#### Details\n\n'
+           '```\n## code [x]\n```' )
+    _write_md_nb( fakerepo, md )
+    assert 'notebooks OK' in run_tool( 'check' ).stdout
+    nb = select_notebooks( ['one'], find_notebooks() )[0]
+    cfg = load_config()
+    def last( target ):
+        return source_str( expand( nb, cfg, target )['cells'][-1] )
+    #Unchanged for running and editing:
+    assert last('test') == md
+    assert last('launch') == md
+    #In the versions for users, the keys become anchors with ids (with the
+    #shortkey of the notebook), which links to sections use:
+    rest = '## Results\n\n#### Details\n\n```\n## code [x]\n```'
+    assert last('site') == ( 'See [the results](#one-res).\n\n{#one-res}\n'
+                             + rest )
+    for target in ('pip','conda','colab','colabtest'):
+        assert last(target) == ( 'See [the results](#one-res).\n\n'
+                                 '<a id="one-res"></a>\n\n' + rest )

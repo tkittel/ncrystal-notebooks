@@ -24,10 +24,11 @@ micromamba or conda).
 ## Editing a notebook
 
 Editing a notebook is much like editing any other notebook in Jupyter Lab. Just
-two things are special: the first cell of every notebook is a
+a few things are special: the first cell of every notebook is a
 [settings cell](#the-settings-cell), with information about the notebook (like
-its title and what it needs), and before committing anything you must always
-run a command which cleans up the notebooks (see
+its title and what it needs), section headings end with a short key in
+brackets (see [Section headings](#section-headings)), and before committing
+anything you must always run a command which cleans up the notebooks (see
 [Before committing](#before-committing)).
 
 The easiest way to edit a notebook is:
@@ -127,6 +128,39 @@ versions for different purposes (running the notebook in tests, the website,
 the downloadable notebooks for pip and conda, and Google Colab). So when a
 better way of installing something on Google Colab is found, only the tool
 needs to change, not every notebook.
+
+## Section headings
+
+The title of a notebook comes from its settings cell, so the notebook itself
+has no headings with a single `#`. Its sections have headings with `##` (and
+subsections `###`), which must end with a key in brackets:
+
+```
+## Interactive results [results]
+### Changing the temperature [temp]
+```
+
+Keys consist of lowercase letters (a-z) and digits, start with a letter, have
+at most 10 characters, and must be unique within the notebook. Readers do not
+see them: on the website and in the notebooks for download and for Google
+Colab, the key is removed from the heading, and the section gets a permanent
+anchor named after the shortkey of the notebook and the key, e.g.
+`sapphire-results`. Links to the section (like
+`.../notebooks/sapphire.html#sapphire-results` on the website) therefore keep
+working when the heading is reworded. So choose keys which will not need to
+change, and do not change existing keys. Deeper headings (`####` and below)
+have no keys.
+
+To link to a section of the same notebook from a markdown cell, use its key:
+
+```
+See [the results](#results) below.
+```
+
+Such links work on the website and in the notebooks for download and for
+Google Colab (not while editing the notebook, where the keys are still part of
+the headings). The quick checks (e.g. `ncnotebookdevtool precommit`) report
+missing, invalid or duplicate keys, and links to keys which do not exist.
 
 ## Available requirements and plugins
 

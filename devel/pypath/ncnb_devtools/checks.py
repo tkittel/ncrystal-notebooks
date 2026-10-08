@@ -58,6 +58,48 @@ def check_notebook( nb, cfg ):
         problems.append(f'... and {nlong-3} more lines longer than {maxlen}'
                         ' characters (the limit can be changed with'
                         ' "max-line-length" in the settings cell)')
+    problems += heading_problems( nb )
+    return problems
+
+def heading_problems( nb ):
+    """Problems with the section headings and their keys (see headings.py),
+    and with links to sections."""
+    from .headings import find_headings, section_links, KEY_RE, KEY_RULE
+    problems = []
+    keys = {}
+    links = []
+    for i, c in enumerate(nb.nb['cells']):
+        if c['cell_type'] != 'markdown':
+            continue
+        src = source_str(c)
+        links += [ ( i, k ) for k in section_links(src) ]
+        for h in find_headings(src):
+            where = f'heading "{h.text}" (cell {i+1})'
+            if h.level == 1:
+                problems.append(f'{where}: headings with a single # are not'
+                                ' allowed, since the title is generated from'
+                                ' the settings cell (use ## and ### for'
+                                ' sections)')
+            elif h.level > 3:
+                if h.key is not None:
+                    problems.append(f'{where}: only ## and ### headings have'
+                                    f' keys (remove "[{h.key}]")')
+            elif h.key is None:
+                problems.append(f'{where}: no key at the end of the heading,'
+                                f' e.g. "{"#"*h.level} {h.text} [mykey]" (keys'
+                                f' are {KEY_RULE})')
+            elif not KEY_RE.match(h.key):
+                problems.append(f'{where}: invalid key "{h.key}" (keys are'
+                                f' {KEY_RULE})')
+            elif h.key in keys:
+                problems.append(f'{where}: the key "{h.key}" is also used for'
+                                f' a heading in cell {keys[h.key]+1}')
+            else:
+                keys[h.key] = i
+    for i, k in links:
+        if k not in keys:
+            problems.append(f'link to "#{k}" in cell {i+1}, but no heading has'
+                            f' the key "{k}"')
     return problems
 
 def check_all( notebooks, cfg ):

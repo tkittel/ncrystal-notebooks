@@ -18,6 +18,7 @@ The other targets give notebooks for users, starting with a title cell.
 
 import copy
 
+from .headings import replace_keys_with_anchors
 from .nbfile import make_cell, source_str
 from .nbsettings import MARKER
 
@@ -259,6 +260,9 @@ def expand( nb, cfg, target, links_markdown = None ):
     for c in rest:
         if is_input_hidden( c, cfg ):
             hide_input( c )
+        if c['cell_type'] == 'markdown':
+            c['source'] = replace_keys_with_anchors( source_str(c), target,
+                                                     s.shortkey )
     out['cells'] = new + rest
     return out
 

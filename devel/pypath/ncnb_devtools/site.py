@@ -47,7 +47,10 @@ html_title = {project!r}
 author = 'The NCrystal developers'
 extensions = [ 'myst_nb' ]
 nb_execution_mode = 'off'
-myst_enable_extensions = [ 'dollarmath', 'amsmath', 'colon_fence' ]
+#(attrs_block for the ids of the sections, which the notebooks have as {{#id}}
+#before the headings, see headings.py):
+myst_enable_extensions = [ 'dollarmath', 'amsmath', 'colon_fence',
+                           'attrs_block' ]
 myst_heading_anchors = 3
 html_theme = 'sphinx_book_theme'
 html_theme_options = {{
@@ -68,6 +71,7 @@ html_css_files = [ 'ncnb.css' ]
 exclude_patterns = [ '_build', '_extra', '_static', '**.ipynb_checkpoints' ]
 suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
                      'misc.highlighting_failure' ]
+
 '''
 
 #Compact layout of the lists of notebooks on the front page, and text outputs
