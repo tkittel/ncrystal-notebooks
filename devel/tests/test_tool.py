@@ -247,6 +247,9 @@ def test_repo_settings_file_loads():
     from ncnb_devtools.config import Config
     cfg = Config( REPO / 'notebook_settings.toml' )
     assert cfg.section('start') and 'ncrystal' in cfg.requirements
+    #(condacolab is pinned until condacolab 0.2 has been tested:)
+    assert cfg.colab_condacolab == 'condacolab<0.2'
+    assert cfg.colab_conda_extra == ['openssl']
 
 def test_conda_platforms():
     import types
@@ -507,8 +510,8 @@ def test_plugin_check_in_setup_code( fakerepo ):
                  < code.index("assert 'Dummy' in") )
 
 def test_colab_conda_installs_openssl( fakerepo ):
-    #On Colab, conda packages are installed together with openssl (see
-    #colab_install_cells):
+    #On Colab, conda is installed with condacolab, and the extra conda
+    #packages from the settings (here openssl) with the others:
     from ncnb_devtools.config import load_config
     from ncnb_devtools.expand import expand
     from ncnb_devtools.nbfile import source_str
@@ -517,7 +520,6 @@ def test_colab_conda_installs_openssl( fakerepo ):
     nb = select_notebooks( ['one'], find_notebooks() )[0]
     cells = expand( nb, load_config(), 'colab' )['cells']
     assert 'condacolab.install_miniforge()' in source_str(cells[1])
-    #(Pinned until condacolab 0.2 has been tested:)
     assert '%pip -q install "condacolab<0.2"' in source_str(cells[1])
     #(Fixing the wrapper of the Python executable from condacolab 0.1:)
     assert ' -x $@", \' "$@"\')' in source_str(cells[2])
@@ -631,3 +633,10 @@ def test_sort_value( fakerepo ):
                                                    'sort-value: 200' ) )
     p = run_tool( 'check', check = False )
     assert p.returncode != 0 and 'sort-value 200 is also used' in p.stdout
+
+@pytest.mark.usefixtures('fakerepo')
+def test_list_settings():
+    #The tables of the developer documentation, generated from the settings:
+    out = run_tool( 'list', '--settings' ).stdout
+    assert '**Requirements** (for `requires`):' in out
+    assert '`condacolab<0.2` (with pip), and also install `openssl`' in out

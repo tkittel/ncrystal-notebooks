@@ -216,7 +216,8 @@ it then get the change). Requirements which can not be installed with pip
 (like `openmc`) are only available with conda, and notebooks needing them are
 tested in conda environments only.
 
-These are the current definitions:
+These are the current definitions (generated from `notebook_settings.toml`;
+`ncnotebookdevtool list --settings` shows them too):
 
 <!-- ncnotebookdevtool: settings tables -->
 

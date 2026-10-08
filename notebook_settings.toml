@@ -57,6 +57,14 @@ github_repo = "mctools/ncrystal-notebooks"
 colab_branch = "googlecolab"
 website_url = "https://mctools.github.io/ncrystal-notebooks"
 
+# On Google Colab, notebooks needing conda install it with condacolab (with
+# this pip requirement: version 0.2 is to be tested), and install these extra
+# packages from conda-forge together with their own (openssl, as Colab's
+# Python otherwise uses the older OpenSSL of the system, which conda packages
+# can not use):
+colab_condacolab = "condacolab<0.2"
+colab_conda_extra = ["openssl"]
+
 ################################################################################
 # Sections, in the order they are shown on the website. Each notebook declares
 # the key of its section in its settings cell (and its order in the section

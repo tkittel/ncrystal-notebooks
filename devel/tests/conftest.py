@@ -13,6 +13,8 @@ sys.path.insert( 0, str( REPO / 'devel' / 'pypath' ) )
 
 MINIMAL_TOML = '''
 [general]
+colab_condacolab = "condacolab<0.2"
+colab_conda_extra = ["openssl"]
 ncrystal_min_version = "4.2.0"
 max_line_length = 40
 

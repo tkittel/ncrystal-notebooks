@@ -233,7 +233,7 @@ def colab_restart_cell( expanded ):
     ids = [ c.get('id') for c in expanded['cells'] ]
     return COLAB_RESTART_CELL_ID if COLAB_RESTART_CELL_ID in ids else None
 
-def colab_install_cells( reqs ):
+def colab_install_cells( reqs, cfg ):
     """Installation cells for Google Colab, as lists of lines."""
     if not reqs.needs_conda:
         return [ [ '#Install software on Google Colab:',
@@ -242,15 +242,9 @@ def colab_install_cells( reqs ):
     first = [
         '#Install conda on Google Colab. This restarts the kernel, so the',
         '#notebook will say that it crashed. This is expected!',
-        #(Pinned until condacolab 0.2, with a new installation method based on
-        #Pixi, has been tested:)
-        '%pip -q install "condacolab<0.2"',
+        '%pip -q install ' + _quote( [ cfg.colab_condacolab ] ),
         'import condacolab',
         'condacolab.install_miniforge()' ]
-    #The packages are installed together with openssl from conda-forge:
-    #condacolab keeps the Python of Colab, which otherwise ends up using the
-    #older OpenSSL of the system, which conda packages can not use (e.g. when
-    #importing OpenMC: "libssl.so.3: version `OPENSSL_3.2.0' not found"):
     #condacolab 0.1 replaces the Python executable with a wrapper which splits
     #arguments with spaces (as "$@" is not quoted, which e.g. breaks the
     #"python3 -c ..." commands of McStas's mcrun), and makes Python skip the
@@ -264,7 +258,7 @@ def colab_install_cells( reqs ):
             '    _w.write_text(_w.read_text().replace(" -x $@", \' "$@"\'))' ]
     second = [ *fix, '#Install software on Google Colab:',
                '!mamba install -y -q --override-channels -c conda-forge '
-               + _quote( [ *reqs.conda_packages, 'openssl' ] ) ]
+               + _quote( [ *reqs.conda_packages, *cfg.colab_conda_extra ] ) ]
     extra = reqs.conda_pip_packages + reqs.plugins
     if extra:
         second.append( '%pip -q install ' + _quote(extra) )
@@ -307,7 +301,7 @@ def expand( nb, cfg, target, links_markdown = None, *,
     if links_markdown:
         new.append( make_cell( 'markdown', links_markdown, 'ncnb-links' ) )
     if target == 'colab':
-        icells = colab_install_cells( reqs )
+        icells = colab_install_cells( reqs, cfg )
         for i, lines in enumerate(icells[:-1]):
             new.append( make_cell( 'code', '\n'.join(lines),
                                    f'ncnb-install{i}' ) )

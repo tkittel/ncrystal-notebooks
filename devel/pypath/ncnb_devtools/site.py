@@ -146,6 +146,12 @@ def settings_tables_markdown( cfg ):
             if missing:
                 conda += ' (not on ' + ', '.join( missing ) + ')'
         out.append( f'| `{key}` | {r.description} | {pip} | {conda} |' )
+    note = ( 'On Google Colab, notebooks needing conda install it with'
+             f' {code([cfg.colab_condacolab])} (with pip)' )
+    if cfg.colab_conda_extra:
+        note += ( ', and also install '
+                  + code( cfg.colab_conda_extra ) + ' (with conda)' )
+    out += [ '', note + '.' ]
     out += [ '', '**Plugins** (for `plugins`):', '',
              '| Name | Installed from |', '|---|---|' ]
     for key, spec in cfg.plugins.items():

@@ -93,6 +93,8 @@ class Config:
                              or g.get('github_repo',
                                       'mctools/ncrystal-notebooks') )
         self.colab_branch = g.get('colab_branch','googlecolab')
+        self.colab_condacolab = g.get('colab_condacolab','condacolab')
+        self.colab_conda_extra = list(g.get('colab_conda_extra',[]))
         #(Forks have their website at https://OWNER.github.io/REPO:)
         if os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO'):
             owner, repo = self.github_repo.split('/')

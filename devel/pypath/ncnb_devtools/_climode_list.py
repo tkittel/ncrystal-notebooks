@@ -12,8 +12,17 @@ def main( parser ):
                          all).""" )
     parser.add_argument( '--paths', action='store_true',
                          help='Also show the paths of the notebooks.' )
+    parser.add_argument( '--settings', action='store_true',
+                         help="""Instead show the requirements, plugins and
+                         sections which notebooks can use (defined in
+                         notebook_settings.toml), as in the developer
+                         documentation.""" )
     args = parser.parse_args()
     from .config import load_config
+    if args.settings:
+        from .site import settings_tables_markdown
+        print_msg( settings_tables_markdown( load_config() ) )
+        return
     from .nbsettings import find_notebooks, section_notebooks, select_notebooks
     cfg = load_config()
     notebooks = select_notebooks( args.NOTEBOOK, find_notebooks() )
