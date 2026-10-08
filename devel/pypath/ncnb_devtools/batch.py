@@ -4,6 +4,8 @@ import pathlib
 import shutil
 import tempfile
 
+from .utils import print_msg
+
 
 def add_batch_args( parser ):
     from .envsetup import add_env_args
@@ -29,7 +31,7 @@ def quick_checks( cfg ):
     from .checks import check_all, report
     from .nbsettings import find_notebooks
     notebooks = find_notebooks()
-    print('Running quick checks of all notebooks', flush = True)
+    print_msg('Running quick checks of all notebooks', flush = True)
     if not report( check_all( notebooks, cfg ) ):
         raise SystemExit('ERROR: Quick checks failed (see above)')
     return notebooks
@@ -40,12 +42,12 @@ def make_workdir( args ):
         workdir.mkdir( parents = True, exist_ok = True )
     else:
         workdir = pathlib.Path(tempfile.mkdtemp(prefix='ncnotebookdevtool_'))
-    print(f'Work directory: {workdir}', flush = True)
+    print_msg(f'Work directory: {workdir}', flush = True)
     return workdir
 
 def cleanup_workdir( args, workdir, failed ):
     if failed or args.keep or args.workdir:
-        print(f'\nWork directory kept: {workdir}')
+        print_msg(f'\nWork directory kept: {workdir}')
     else:
         shutil.rmtree( workdir, ignore_errors = True )
 
@@ -143,8 +145,8 @@ def run_batch( jobs, args, cfg, workdir, target ):
         nb, env, nbfile, ( limit, minimum ), restart_after = item
         with lock:
             counts['started'] += 1
-            print(f'Running ({counts["started"]}/{ntot}) {nb.shortkey}'
-                  f' ({nb.relpath}) in {env.description}', flush = True)
+            print_msg(f'Running ({counts["started"]}/{ntot}) {nb.shortkey}'
+                      f' ({nb.relpath}) in {env.description}', flush = True)
         res = run_notebook( env, nbfile, limit,
                             workdir / f'{nb.shortkey}.log', restart_after )
         if res.ok and minimum is not None and res.seconds < minimum:
@@ -155,9 +157,9 @@ def run_batch( jobs, args, cfg, workdir, target ):
                             ' yes" from its settings cell.' )
         with lock:
             counts['done'] += 1
-            print(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
-                  f' ({res.seconds:.0f} s) [{counts["done"]}/{ntot} done]',
-                  flush = True)
+            print_msg(f'  {"OK" if res.ok else "FAILED"}: {nb.shortkey}'
+                      f' ({res.seconds:.0f} s) [{counts["done"]}/{ntot} done]',
+                      flush = True)
         return nb, res
 
     with ThreadPoolExecutor( max_workers = max(1,args.j) ) as ex:
@@ -165,14 +167,14 @@ def run_batch( jobs, args, cfg, workdir, target ):
 
 def print_summary( results, workdir, limits = None ):
     """Print summary, and return the number of failures."""
-    print('\nSummary' + ( f' (time limits: {limits}):' if limits else ':' ))
+    print_msg('\nSummary' + ( f' (time limits: {limits}):' if limits else ':' ))
     nfail = 0
     for nb, res in results:
-        print(f'  {"OK    " if res.ok else "FAILED"} {res.seconds:6.0f} s'
-              f'  {nb.shortkey:<14} {nb.relpath}')
+        print_msg(f'  {"OK    " if res.ok else "FAILED"} {res.seconds:6.0f} s'
+                  f'  {nb.shortkey:<14} {nb.relpath}')
         nfail += 0 if res.ok else 1
     for nb, res in results:
         if not res.ok:
-            print(f'\n===== {nb.shortkey} failed (log: '
-                  f'{workdir / (nb.shortkey + ".log")}):\n{res.message}')
+            print_msg(f'\n===== {nb.shortkey} failed (log: '
+                      f'{workdir / (nb.shortkey + ".log")}):\n{res.message}')
     return nfail

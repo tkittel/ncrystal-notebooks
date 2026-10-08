@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return ( 'Open a notebook in Jupyter Lab, in a fresh directory and'
              ' environment' )
@@ -51,7 +54,7 @@ def launch( args ):
     env = EnvSetup( args, cfg, base / 'setup' ).env_for( nb, kind )
     #Jupyter Lab is only installed when needed:
     if env.missing_modules(['jupyterlab']):
-        print('Installing jupyterlab in the environment', flush = True)
+        print_msg('Installing jupyterlab in the environment', flush = True)
         pip_install( env, ['jupyterlab'] )
     rundir = base / nb.shortkey
     expanded = expand( nb, cfg, 'launch' )
@@ -63,9 +66,9 @@ def launch( args ):
     environ['JUPYTER_PATH'] = os.pathsep.join( [ str(jdatadir),
                                                  environ['JUPYTER_PATH'] ] )
     original = nb.path.read_text( encoding = 'utf-8' )
-    print(f'\nOpening {nb.relpath} in Jupyter Lab (in {rundir}).'
-          '\nStop Jupyter Lab with Ctrl-C when done, to save the notebook back'
-          ' into the repository.\n', flush = True)
+    print_msg(f'\nOpening {nb.relpath} in Jupyter Lab (in {rundir}).'
+              '\nStop Jupyter Lab with Ctrl-C when done, to save the notebook'
+              ' back into the repository.\n', flush = True)
     #The browser opens the address of the notebook in Jupyter Lab directly, not
     #a redirect file in the (temporary) Jupyter data directory, which browsers
     #with their own /tmp (e.g. snap packages on Ubuntu) can not open:
@@ -93,12 +96,12 @@ def launch( args ):
     edited = load( nbfile )
     gensrc = generated_cell_source( edited )
     if gensrc is not None and gensrc != generated_cell_source( expanded ):
-        print('\nWARNING: Your changes to the cell with generated code were'
-              ' discarded (to change the setup, edit the settings cell).')
+        print_msg('\nWARNING: Your changes to the cell with generated code were'
+                  ' discarded (to change the setup, edit the settings cell).')
     collapse( edited )
     text = canonical_text( edited )
     if text == original:
-        print(f'\nNo changes to {nb.relpath}')
+        print_msg(f'\nNo changes to {nb.relpath}')
     else:
         if nb.path.read_text( encoding = 'utf-8' ) != original:
             raise SystemExit(f'\nERROR: {nb.relpath} was modified while the'
@@ -107,7 +110,7 @@ def launch( args ):
         orig = nb.path.with_name( nb.path.name + '.orig' )
         orig.write_text( original, encoding = 'utf-8' )
         nb.path.write_text( text, encoding = 'utf-8' )
-        print(f'\nSaved changes to {nb.relpath} (previous version kept in'
-              f' {orig.relative_to(nb.path.parent.parent)})')
+        print_msg(f'\nSaved changes to {nb.relpath} (previous version kept in'
+                  f' {orig.relative_to(nb.path.parent.parent)})')
     if not args.workdir:
         shutil.rmtree( base, ignore_errors = True )

@@ -1,3 +1,6 @@
+from .utils import prefixed, print_msg
+
+
 def short_description():
     return 'Create a new notebook (asking for its settings)'
 
@@ -46,7 +49,7 @@ class _Asker:
         while True:
             dflt = f' [{default}]' if default else ''
             try:
-                v = input(f'{prompt}{dflt}: ').strip()
+                v = input( prefixed(f'{prompt}{dflt}: ') ).strip()
             except (EOFError,KeyboardInterrupt):
                 raise SystemExit('\nAborted') from None
             if not v and default:
@@ -54,7 +57,7 @@ class _Asker:
             err = check(v)
             if not err:
                 return v
-            print(f'  {err}')
+            print_msg(f'  {err}')
 
 def _suggest_shortkey( title, taken ):
     import re
@@ -131,9 +134,9 @@ def createnew( args ):
                         default = _suggest_shortkey( title, taken_keys ) )
 
     if args.section is None and ask.interactive:
-        print('Sections:')
+        print_msg('Sections:')
         for s in cfg.sections:
-            print(f'  {s.key:<12} {s.title}')
+            print_msg(f'  {s.key:<12} {s.title}')
     def check_section( v ):
         if not cfg.section(v):
             return ( f'Unknown section "{v}" (sections: '
@@ -143,11 +146,11 @@ def createnew( args ):
                        default = cfg.sections[0].key )
 
     if args.requires is None and ask.interactive:
-        print('Requirements besides NCrystal:')
+        print_msg('Requirements besides NCrystal:')
         for key, r in cfg.requirements.items():
             if key != 'ncrystal':
                 conda = '' if r.pip_available else ' (conda only)'
-                print(f'  {key:<12} {r.description}{conda}')
+                print_msg(f'  {key:<12} {r.description}{conda}')
     def check_requires( v ):
         bad = [ r for r in _parse_list(v) if r not in cfg.requirements ]
         if bad:
@@ -159,7 +162,7 @@ def createnew( args ):
         default = 'plot' ) ) if r != 'ncrystal' ]
 
     if args.plugins is None and ask.interactive and cfg.plugins:
-        print('Plugins: ' + ', '.join(cfg.plugins))
+        print_msg('Plugins: ' + ', '.join(cfg.plugins))
     def check_plugins( v ):
         bad = [ p for p in _parse_list(v) if p not in cfg.plugins ]
         if bad:
@@ -207,8 +210,9 @@ def createnew( args ):
     path.parent.mkdir( parents = True, exist_ok = True )
     write( path, nb )
     relpath = path.relative_to( reporoot() ).as_posix()
-    print(f'\nCreated {relpath} with the settings:\n')
-    print( '\n'.join( '  ' + e for e in lines ) )
-    print('\nThe settings can be changed later by editing the first cell (see'
-          ' the developer\ndocumentation). To edit the notebook, run:\n')
-    print(f'  devel/bin/ncnotebookdevtool launch {shortkey}\n')
+    print_msg(f'\nCreated {relpath} with the settings:\n')
+    print_msg( '\n'.join( '  ' + e for e in lines ) )
+    print_msg('\nThe settings can be changed later by editing the first cell'
+              ' (see the developer\ndocumentation). To edit the notebook,'
+              ' run:\n')
+    print_msg(f'  devel/bin/ncnotebookdevtool launch {shortkey}\n')

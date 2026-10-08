@@ -11,6 +11,7 @@ from .envs import (
     verify_ncrystal,
 )
 from .expand import Requirements
+from .utils import print_msg
 
 ENV_CHOICES = ('auto','venv','conda','current')
 
@@ -117,6 +118,6 @@ class EnvSetup:
                                  ncrystal_wheels = self._ncrystal_wheels(),
                                  log = self.log )
             if self.ncrystal_src:
-                print('  Verified: '+verify_ncrystal(ov),flush=True)
+                print_msg('  Verified: '+verify_ncrystal(ov),flush=True)
             self._overlays[okey] = ov
         return self._overlays[okey]

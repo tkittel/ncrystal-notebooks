@@ -1,3 +1,5 @@
+from .utils import print_msg
+
 #The rules of ruff for the code in the notebooks: only a few simple ones, since
 #notebook code is not module code (e.g. packages may be imported for later
 #exercises, and names redefined when exploring). Syntax errors, undefined
@@ -20,7 +22,7 @@ def main( parser ):
     args = parser.parse_args()
     if not lint( fix = args.fix ):
         raise SystemExit(1)
-    print('Lint OK')
+    print_msg('Lint OK')
 
 def find_ruff():
     """The command for running ruff (as a list), or None if not available:
@@ -46,14 +48,18 @@ def lint( *, fix = False, notebooks = None ):
         raise SystemExit('ERROR: ruff is needed for linting, also by'
                          ' "precommit" (install it with e.g. "pip install'
                          ' \'ruff>=0.16.10,<0.17\'")')
-    print('Linting the Python code', flush = True)
+    print_msg('Linting the Python code', flush = True)
     #(The notebooks are linted separately below, so they are always excluded
     #here, as in ruff.toml:)
     cmd = [ *ruff, 'check', '--quiet', '--color', 'never',
             '--output-format', 'concise', '--extend-exclude', 'notebooks' ]
-    ok = subprocess.run( cmd + ( ['--fix'] if fix else [] ),
-                         cwd = reporoot(), check = False ).returncode == 0
-    print('Linting the notebooks', flush = True)
+    p = subprocess.run( cmd + ( ['--fix'] if fix else [] ), cwd = reporoot(),
+                        capture_output = True, text = True, check = False )
+    for out in ( p.stdout, p.stderr ):
+        if out.strip():
+            print_msg( out.rstrip() )
+    ok = p.returncode == 0
+    print_msg('Linting the notebooks', flush = True)
     return lint_notebooks( ruff, notebooks ) and ok
 
 def lint_notebooks( ruff, notebooks = None ):
@@ -91,7 +97,7 @@ def lint_notebooks( ruff, notebooks = None ):
     for name, relpath in names.items():
         out = out.replace( name, relpath )
     if out.strip():
-        print( out.rstrip() )
+        print_msg( out.rstrip() )
     if p.returncode != 0 and not out.strip():
-        print( p.stderr.rstrip() )
+        print_msg( p.stderr.rstrip() )
     return p.returncode == 0

@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return ( 'Bring notebooks into canonical form and check them (run before'
              ' commits)' )
@@ -25,7 +28,7 @@ def main( parser ):
         text = canonical_text(nb.nb)
         if nb.path.read_text(encoding='utf-8') != text:
             nb.path.write_text(text,encoding='utf-8')
-            print(f'Updated {nb.relpath}')
+            print_msg(f'Updated {nb.relpath}')
     allnbs = find_notebooks()
     notebooks = select_notebooks( args.NOTEBOOK, allnbs )
     selected = { nb.relpath for nb in notebooks }
@@ -34,8 +37,8 @@ def main( parser ):
     if not report( problems ):
         raise SystemExit(1)
     n = len(notebooks)
-    print(f'All {n} notebook{"s" if n != 1 else ""} OK')
+    print_msg(f'All {n} notebook{"s" if n != 1 else ""} OK')
     from ._climode_lint import lint
     if not lint( notebooks = notebooks ):
         raise SystemExit('ERROR: Linting failed (see above)')
-    print('Lint OK')
+    print_msg('Lint OK')

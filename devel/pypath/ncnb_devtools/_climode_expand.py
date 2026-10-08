@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return 'Write the generated version of a notebook for a given target'
 
@@ -23,4 +26,4 @@ def main( parser ):
     out = pathlib.Path(args.output)
     out.write_text( dumps( expand( nb, load_config(), args.target ) ),
                     encoding = 'utf-8' )
-    print(f'Wrote {out}')
+    print_msg(f'Wrote {out}')

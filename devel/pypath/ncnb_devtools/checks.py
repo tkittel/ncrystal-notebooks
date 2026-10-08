@@ -2,6 +2,7 @@
 
 from .nbfile import canonical_text, source_str
 from .nbsettings import MARKER
+from .utils import print_msg
 
 PRECOMMIT_HINT = ('run "devel/bin/ncnotebookdevtool precommit" to bring the'
                   ' notebooks into canonical form')
@@ -148,5 +149,5 @@ def check_all( notebooks, cfg ):
 def report( problems ):
     """Print the problems, and return True if there were none."""
     for relpath, p in problems:
-        print(f'{relpath}: {p}')
+        print_msg(f'{relpath}: {p}')
     return not problems

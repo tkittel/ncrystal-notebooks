@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return 'Run all notebooks and build the website'
 
@@ -70,7 +73,8 @@ def build_site( args ):
             torun = [ nb for nb in notebooks if not nb.settings.slow ]
             for nb in notebooks:
                 if nb.settings.slow:
-                    print(f'Skipping {nb.shortkey} (slow, shown unexecuted)')
+                    print_msg(f'Skipping {nb.shortkey} (slow, shown'
+                              ' unexecuted)')
                     warnings[nb.shortkey] = SLOW_WARNING
         jobs = [ ( nb, env_kind( Requirements( nb.settings, cfg ), args.env ) )
                  for nb in torun ]
@@ -104,7 +108,7 @@ def build_site( args ):
                                            'metadata' : {},
                                            'source' : links_markdown(nb,cfg) } )
                 executed[nb.settings.shortkey] = page
-    print('Building the website', flush = True)
+    print_msg('Building the website', flush = True)
     write_sources( notebooks, executed, cfg, out / 'src', out / 'colab',
                    warnings )
     env = venv_env( SPHINX_PACKAGES, python = args.python,
@@ -112,5 +116,5 @@ def build_site( args ):
     build_html( env, out / 'src', out / 'html', workdir / 'sphinx.log' )
     cleanup_workdir( args, workdir, nfail )
     html = out / 'html'
-    print(f'\nWebsite built in {html} (open {html / "index.html"}'
-          ' in a browser)')
+    print_msg(f'\nWebsite built in {html} (open {html / "index.html"}'
+              ' in a browser)')

@@ -569,3 +569,18 @@ def test_envsetup_creates_workdir( tmp_path ):
     workdir = tmp_path / 'not' / 'yet'
     s = EnvSetup( types.SimpleNamespace( ncrystal_src = None ), None, workdir )
     assert workdir.is_dir() and s.log.parent == workdir
+
+@pytest.mark.usefixtures('fakerepo')
+def test_output_is_prefixed():
+    #All output of the tool, including error messages, has a prefix on every
+    #line (to tell it apart from the output of e.g. Jupyter Lab):
+    from ncnb_devtools.utils import PRINT_PREFIX, prefixed
+    P = PRINT_PREFIX
+    assert prefixed('a\n\nb') == f'{P} a\n{P}\n{P} b'
+    p = run_tool( 'list' )
+    assert p.stdout.strip()
+    assert all( line.startswith(PRINT_PREFIX)
+                for line in p.stdout.splitlines() )
+    p = run_tool( 'check', 'nosuchnotebook', check = False )
+    assert p.returncode == 1
+    assert p.stderr.startswith(f'{PRINT_PREFIX} ERROR: Unknown notebook')

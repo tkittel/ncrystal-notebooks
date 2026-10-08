@@ -56,7 +56,8 @@ echo "Summary:"
 nfail=0
 while read -r sk; do
     status=$(cat "$WORK/$sk.status")
-    line=$(grep -E "^ +(OK|FAILED) +[0-9]+ s +$sk " "$WORK/$sk.out" || true)
+    line=$(grep -E "^ncnotebookdevtool:: +(OK|FAILED) +[0-9]+ s +$sk " \
+             "$WORK/$sk.out" | sed 's/^ncnotebookdevtool:://' || true)
     echo "${line:-  $status (no time reported)  $sk}"
     [ "$status" = OK ] || nfail=$((nfail+1))
 done < "$WORK/selected.txt"

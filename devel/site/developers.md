@@ -41,6 +41,8 @@ ncnotebookdevtool launch SHORTKEY
 This opens the notebook in Jupyter Lab, running in a fresh directory and in an
 environment with everything the notebook needs, created and cached by the tool
 (`--env current` uses your current environment instead, without modifying it).
+All messages of the tool start with `ncnotebookdevtool::`, which tells them
+apart from the many messages of Jupyter Lab.
 The settings cell is followed by a cell with the setup code generated from it
 (installation checks, imports, plotting setup and so on), which is not part of
 the notebook in the repository. Do not edit that cell: it is removed again when

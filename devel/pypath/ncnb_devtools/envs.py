@@ -27,6 +27,7 @@ import subprocess
 import sys
 
 from .dirs import cache_dir, reporoot
+from .utils import print_msg
 
 #Packages needed for running notebooks with nbclient (and for checking that
 #they can be converted to HTML):
@@ -181,8 +182,8 @@ def venv_env( pip_packages, *, python = None, fresh = False, log = None ):
     if fresh or not ( d / _complete_marker ).exists():
         if d.exists():
             shutil.rmtree(d)
-        print(f'Creating environment {d.name} (pip: {" ".join(pkgs)})',
-              flush = True)
+        print_msg(f'Creating environment {d.name} (pip: {" ".join(pkgs)})',
+                  flush = True)
         _run( [ python, '-m', 'venv', d ], log = log )
         env.run( [ env.python, '-m', 'pip', 'install', '-q', '--upgrade',
                    'pip' ], log = log )
@@ -205,9 +206,9 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
     if fresh or not ( d / _complete_marker ).exists():
         if d.exists():
             shutil.rmtree(d)
-        print(f'Creating environment {d.name} (conda: {" ".join(cpkgs)}'
-              + ( f'; pip: {" ".join(ppkgs)}' if ppkgs else '' ) + ')',
-              flush = True)
+        print_msg(f'Creating environment {d.name} (conda: {" ".join(cpkgs)}'
+                  + ( f'; pip: {" ".join(ppkgs)}' if ppkgs else '' ) + ')',
+                  flush = True)
         cenv = dict(os.environ)
         #Shared package cache, so files are hardlinked between environments:
         pkgsdir = cache_dir() / 'conda-pkgs'
@@ -292,8 +293,8 @@ def build_ncrystal_wheels( srcdir, wheeldir, *, log = None ):
     if wheeldir.exists():
         shutil.rmtree(wheeldir)
     wheeldir.mkdir( parents = True )
-    print(f'Building NCrystal from {srcdir} (this takes a few minutes)',
-          flush = True)
+    print_msg(f'Building NCrystal from {srcdir} (this takes a few minutes)',
+              flush = True)
     for sub in ('ncrystal_core','ncrystal_python'):
         _run( [ sys.executable, '-m', 'pip', 'wheel', '-q', '--no-deps',
                 '-w', wheeldir, srcdir / sub ], log = log )
@@ -371,8 +372,8 @@ def create_base_env( req, *, python = None, fresh = False, log = None ):
 def create_overlay( req, base, path, *, ncrystal_wheels = None,
                     log = None ):
     """Create the overlay for the request on top of the base environment."""
-    print(f'Creating overlay environment {path.name} on top of'
-          f' {base.description}', flush = True)
+    print_msg(f'Creating overlay environment {path.name} on top of'
+              f' {base.description}', flush = True)
     ov = overlay_env( base, path, log = log )
     if req.kind == 'current':
         missing = ov.missing_modules( EXEC_MODULES.values() )

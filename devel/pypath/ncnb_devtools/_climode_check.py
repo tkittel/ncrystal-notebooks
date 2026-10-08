@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return 'Quick checks of all notebooks (format, settings, line lengths)'
 
@@ -21,4 +24,4 @@ def main( parser ):
     if not report( problems ):
         raise SystemExit(1)
     n = len(notebooks)
-    print(f'All {n} notebook{"s" if n != 1 else ""} OK')
+    print_msg(f'All {n} notebook{"s" if n != 1 else ""} OK')

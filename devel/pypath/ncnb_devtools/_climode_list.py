@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return 'List the notebooks by section, as on the website'
 
@@ -20,9 +23,9 @@ def main( parser ):
                 if nb.settings and nb.settings.section == section.key ]
         if not nbs and args.NOTEBOOK:
             continue
-        print(f'{section.title} [{section.key}]:')
+        print_msg(f'{section.title} [{section.key}]:')
         if not nbs:
-            print('    (no notebooks)')
+            print_msg('    (no notebooks)')
         for nb in nbs:
             s = nb.settings
             extra = list(s.requires) + [ f'plugin:{p}'
@@ -30,13 +33,13 @@ def main( parser ):
             if s.slow:
                 extra.append('slow')
             req = f'  [{", ".join(extra)}]' if extra else ''
-            print(f'    {s.shortkey:<14} {s.title}{req}')
+            print_msg(f'    {s.shortkey:<14} {s.title}{req}')
             if args.paths:
-                print(f'    {"":<14} {nb.relpath}')
+                print_msg(f'    {"":<14} {nb.relpath}')
             nshown += 1
-        print()
+        print_msg()
     for nb in notebooks:
         if not nb.settings:
-            print(f'Invalid: {nb.relpath} ({nb.error})')
+            print_msg(f'Invalid: {nb.relpath} ({nb.error})')
         elif not cfg.section(nb.settings.section):
-            print(f'Unknown section "{nb.settings.section}": {nb.relpath}')
+            print_msg(f'Unknown section "{nb.settings.section}": {nb.relpath}')

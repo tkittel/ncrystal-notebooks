@@ -50,6 +50,21 @@ def get_module_short_description( mode ):
     return import_sibling_module(mode=mode).short_description()
 
 def main():
+    #Error messages (given to SystemExit) are also printed with the prefix of
+    #all output of the tool:
+    import sys
+
+    from .utils import prefixed
+    try:
+        _main()
+    except SystemExit as e:
+        if not isinstance( e.code, str ):
+            raise
+        sys.stdout.flush()
+        print( prefixed( e.code.strip('\n') ), file = sys.stderr )
+        raise SystemExit(1) from None
+
+def _main():
     import sys
     if len(sys.argv)<2 or sys.argv[1] in ('-h','--h','--he','--hel','--help'):
         usage()

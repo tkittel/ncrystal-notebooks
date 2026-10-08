@@ -1,3 +1,6 @@
+from .utils import print_msg
+
+
 def short_description():
     return 'Run notebooks (as in CI), after the quick checks'
 
@@ -73,7 +76,7 @@ def run_tests( args ):
         if args.only_slow and not nb.settings.slow and not args.NOTEBOOK:
             continue
         if args.skip_slow and nb.settings.slow and not args.NOTEBOOK:
-            print(f'Skipping {nb.shortkey} (slow)')
+            print_msg(f'Skipping {nb.shortkey} (slow)')
             continue
         if args.select == 'pip' and reqs.needs_conda:
             continue
@@ -87,7 +90,7 @@ def run_tests( args ):
             if args.NOTEBOOK:
                 raise SystemExit(f'ERROR: {nb.shortkey} needs conda, and can'
                                  ' not run with --env=venv')
-            print(f'Skipping {nb.shortkey} (needs conda)')
+            print_msg(f'Skipping {nb.shortkey} (needs conda)')
             continue
         unavail = ( reqs.unavailable_with_conda( conda_platform() )
                     if kind == 'conda' else [] )
@@ -96,7 +99,7 @@ def run_tests( args ):
                     f' available with conda on {conda_platform()}' )
             if args.NOTEBOOK:
                 raise SystemExit(f'ERROR: {msg}')
-            print(f'Skipping {msg}')
+            print_msg(f'Skipping {msg}')
             continue
         #TEMPORARY: Building NCrystal plugins from source fails on Windows with
         #NCrystal 4.4.6 and earlier (NCrystal.dll is not found in the
@@ -109,7 +112,7 @@ def run_tests( args ):
                     ' Windows' )
             if args.NOTEBOOK:
                 raise SystemExit(f'ERROR: {msg}')
-            print(f'Skipping {msg}')
+            print_msg(f'Skipping {msg}')
             continue
         jobs.append( ( nb, kind ) )
     if not jobs:
@@ -119,8 +122,8 @@ def run_tests( args ):
         pathlib.Path(args.write_selected).write_text(
             ''.join( f'{nb.shortkey}\n' for nb, _ in jobs ),
             encoding = 'utf-8' )
-        print(f'Wrote the {len(jobs)} selected notebooks to'
-              f' {args.write_selected}')
+        print_msg(f'Wrote the {len(jobs)} selected notebooks to'
+                  f' {args.write_selected}')
         return
     target = 'colabtest' if args.colab else 'test'
     workdir = make_workdir( args )
@@ -132,4 +135,4 @@ def run_tests( args ):
         raise SystemExit(f'\nERROR: {nfail} of {len(results)} notebooks'
                          ' failed')
     n = len(results)
-    print(f'\nAll {n} notebook{"s" if n != 1 else ""} OK')
+    print_msg(f'\nAll {n} notebook{"s" if n != 1 else ""} OK')
