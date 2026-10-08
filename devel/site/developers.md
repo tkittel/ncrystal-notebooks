@@ -88,9 +88,14 @@ The keys are:
   for all notebooks, not package names, and never with versions: see the
   [available requirements](#available-requirements-and-plugins).
 * `plugins`: NCrystal plugins needed by the notebook, likewise by names
-  defined for all notebooks (see the [available plugins](#available-requirements-and-plugins)).
+  defined for all notebooks (see the
+  [available plugins](#available-requirements-and-plugins)). They are
+  installed with the other requirements, before NCrystal is imported (NCrystal
+  looks for plugins when it is first imported), and the generated setup code
+  checks that NCrystal finds them. So a notebook should not install plugins
+  itself.
 * `import-ncrystal`: Set to `no` if the notebook should not have NCrystal
-  imported for it, e.g. because it installs plugins before importing NCrystal.
+  imported for it by the generated setup code.
 * `max-line-length`: Maximum length of lines in code cells, if the default (120
   characters) is not suitable, e.g. for embedded data.
 * `slow`: Set to `yes` for notebooks which take long to run, even with their

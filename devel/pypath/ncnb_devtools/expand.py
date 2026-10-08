@@ -180,6 +180,14 @@ def setup_code( settings, reqs, cfg, target ):
                    f'assert NC.version_num >= {cfg.ncrystal_min_version_num},'
                    f' "NCrystal version {v} or later is needed"',
                    'NC.test() #< quick test that the installation works' ]
+        if reqs.plugin_names:
+            #(NCrystal looks for plugins when first imported, so they are
+            #installed before the import above.)
+            lines.append( '#Check that NCrystal finds the plugin'
+                          + ( 's:' if len(reqs.plugin_names) > 1 else ':' ) )
+            lines += [ f"assert {n!r} in [ p[0] for p in NC.browsePlugins() ],"
+                       f" 'NCrystal plugin {n} not found'"
+                       for n in reqs.plugin_names ]
     return lines
 
 def install_comment( reqs, target ):

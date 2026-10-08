@@ -468,3 +468,20 @@ def test_lint( fakerepo ):
     f.write_text( json.dumps(nb) )
     run_tool( 'precommit', check = False )
     assert 'Lint OK' in run_tool( 'lint' ).stdout
+
+def test_plugin_check_in_setup_code( fakerepo ):
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.expand import expand
+    from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    _write_params_nb( fakerepo, '\n# plugins: Dummy' )
+    assert 'notebooks OK' in run_tool( 'check' ).stdout
+    nb = select_notebooks( ['one'], find_notebooks() )[0]
+    for target in ('test','pip','colab'):
+        code = '\n'.join( source_str(c) for c in
+                          expand( nb, load_config(), target )['cells'][:3] )
+        #NCrystal is imported after the plugin is installed, and checked:
+        assert ( "assert 'Dummy' in [ p[0] for p in NC.browsePlugins() ],"
+                 " 'NCrystal plugin Dummy not found'" ) in code
+        assert ( code.index('import NCrystal as NC')
+                 < code.index("assert 'Dummy' in") )
