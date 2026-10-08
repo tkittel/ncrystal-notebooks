@@ -206,6 +206,22 @@ import pathlib
 os.environ['CONDA_PREFIX'] = str(pathlib.Path(shutil.which('nctool')).parent.parent)
 """
 
+#McStas from Python, with mccode-antlr, which downloads the McStas components
+#and compiles instruments itself (with a C compiler, which must be available),
+#without a McStas installation:
+[requirements.mccodeantlr]
+description = "mccode-antlr (McStas without installing it)"
+pip = ["mccode-antlr"]
+conda = ["mccode-antlr"]
+setup = """
+#Let mccode-antlr find ncrystal-config (for the flags for compiling with
+#NCrystal), also if the Python environment is not activated:
+import os
+import sysconfig
+os.environ['PATH'] = os.pathsep.join([ sysconfig.get_path('scripts'),
+                                       os.environ.get('PATH','') ])
+"""
+
 ################################################################################
 # NCrystal plugins, which notebooks declare in the "plugins" line of their
 # settings cell. The value is the pip requirement used to install the plugin
