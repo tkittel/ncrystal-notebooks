@@ -223,9 +223,13 @@ def colab_install_cells( reqs ):
         '%pip -q install condacolab',
         'import condacolab',
         'condacolab.install_miniforge()' ]
+    #The packages are installed together with openssl from conda-forge:
+    #condacolab keeps the Python of Colab, which otherwise ends up using the
+    #older OpenSSL of the system, which conda packages can not use (e.g. when
+    #importing OpenMC: "libssl.so.3: version `OPENSSL_3.2.0' not found"):
     second = [ '#Install software on Google Colab:',
                '!mamba install -y -q --override-channels -c conda-forge '
-               + _quote(reqs.conda_packages) ]
+               + _quote( [ *reqs.conda_packages, 'openssl' ] ) ]
     extra = reqs.conda_pip_packages + reqs.plugins
     if extra:
         second.append( '%pip -q install ' + _quote(extra) )

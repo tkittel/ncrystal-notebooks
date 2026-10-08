@@ -485,3 +485,17 @@ def test_plugin_check_in_setup_code( fakerepo ):
                  " 'NCrystal plugin Dummy not found'" ) in code
         assert ( code.index('import NCrystal as NC')
                  < code.index("assert 'Dummy' in") )
+
+def test_colab_conda_installs_openssl( fakerepo ):
+    #On Colab, conda packages are installed together with openssl (see
+    #colab_install_cells):
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.expand import expand
+    from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    _write_params_nb( fakerepo, ', openmc' )
+    nb = select_notebooks( ['one'], find_notebooks() )[0]
+    cells = expand( nb, load_config(), 'colab' )['cells']
+    assert 'condacolab.install_miniforge()' in source_str(cells[1])
+    assert ( '!mamba install -y -q --override-channels -c conda-forge'
+             ' ncrystal matplotlib openmc openssl' ) in source_str(cells[2])
