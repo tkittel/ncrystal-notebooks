@@ -120,6 +120,10 @@ def main():
         ok = False
         print( str(e)[-6000:] )
     finally:
+        #Merge consecutive outputs to the same stream, applying carriage returns
+        #(e.g. of progress counters), as Jupyter shows them:
+        from nbconvert.preprocessors import CoalesceStreamsPreprocessor
+        CoalesceStreamsPreprocessor().preprocess( nb, {} )
         nbformat.write( nb, outp )
     dt = time.time() - t0
     print(f'Executed in {dt:.1f} seconds')
