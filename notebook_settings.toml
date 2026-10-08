@@ -183,11 +183,9 @@ conda_platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 
 [requirements.mcstas]
 description = "McStas"
-#McStas compiles with MPI by default (and fails if MPI is missing). On Windows
-#this is Microsoft MPI (conda-forge only has an old placeholder package of
-#openmpi there):
-conda = ["mcstas-core", "openmpi; sys_platform != 'win32'",
-         "msmpi; sys_platform == 'win32'"]
+#Without MPI, with which McStas compiles by default (and fails if it is
+#missing), so notebooks run mcrun with --no-mpi:
+conda = ["mcstas-core"]
 setup = """
 #Let McStas find its resources:
 import os
