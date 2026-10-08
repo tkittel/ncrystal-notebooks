@@ -104,7 +104,7 @@ def test_list( fakerepo ):
 def test_expand_and_collapse( fakerepo ):
     from ncnb_devtools.config import load_config
     from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
-    from ncnb_devtools.expand import expand, collapse
+    from ncnb_devtools.expand import expand, collapse, LOGO_HTML
     from ncnb_devtools.nbfile import canonical_text, source_str
     cfg = load_config()
     nb = select_notebooks( ['one'], find_notebooks() )[0]
@@ -119,7 +119,10 @@ def test_expand_and_collapse( fakerepo ):
         assert canonical_text( e ) == original
     for target in ('pip','conda','colab','site'):
         e = expand( nb, cfg, target )
-        assert source_str( e['cells'][0] ) == '# Notebook one'
+        #The logo is shown next to the title, except on the website (which
+        #shows it in the sidebar):
+        logo = '' if target == 'site' else LOGO_HTML + '\n\n'
+        assert source_str( e['cells'][0] ) == logo + '# Notebook one'
         code = source_str( e['cells'][1] )
         assert 'NCrystal notebook settings' not in code
         assert 'NC.test()' in code
@@ -189,10 +192,12 @@ def test_select_by_shortkey_and_path( fakerepo ):
         select_notebooks( ['nosuch'], nbs )
 
 def test_expand_mode( fakerepo, tmp_path ):
+    from ncnb_devtools.expand import LOGO_HTML
     out = tmp_path / 'out.ipynb'
     run_tool( 'expand', 'one', '--target', 'colab', '-o', str(out) )
     nb = json.loads( out.read_text() )
-    assert ''.join(nb['cells'][0]['source']) == '# Notebook one'
+    assert ''.join(nb['cells'][0]['source']) == ( LOGO_HTML + '\n\n'
+                                                  + '# Notebook one' )
 
 def test_repo_settings_file_loads():
     from ncnb_devtools.config import Config

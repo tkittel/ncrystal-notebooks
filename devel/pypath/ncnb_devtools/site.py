@@ -57,7 +57,11 @@ html_theme_options = {{
     'show_toc_level' : 2,
     #No table of contents to the right of the front page:
     'secondary_sidebar_items' : {{ '**' : [ 'page-toc' ], 'index' : [] }},
+    'logo' : {{ 'image_light' : '_static/ncrystal-logo.svg',
+               'image_dark' : '_static/ncrystal-logo-dark.svg',
+               'alt_text' : {project!r} }},
 }}
+html_favicon = '_static/favicon.svg'
 html_extra_path = [ '_extra' ]
 html_static_path = [ '_static' ]
 html_css_files = [ 'ncnb.css' ]
@@ -160,6 +164,8 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
         encoding = 'utf-8' )
     ( srcdir / '_static' ).mkdir()
     ( srcdir / '_static' / 'ncnb.css' ).write_text( CSS, encoding = 'utf-8' )
+    for f in ( reporoot() / 'devel' / 'site' / 'logo' ).glob('*.svg'):
+        shutil.copy( f, srcdir / '_static' / f.name )
     devdoc = ( reporoot() / 'devel' / 'site' / 'developers.md'
                ).read_text( encoding = 'utf-8' )
     ( srcdir / 'developers.md' ).write_text(

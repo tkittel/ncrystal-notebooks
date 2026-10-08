@@ -21,6 +21,18 @@ from .nbsettings import MARKER
 
 TARGETS = ( 'test', 'launch', 'site', 'colab', 'pip', 'conda' )
 
+#The NCrystal logo, shown to the right of the title of the notebooks for users
+#(except on the website, which shows it in the sidebar). It is referred to by
+#URL, since the notebooks are also opened on their own (e.g. in Google Colab),
+#and the HTML <img> tag (with align, which unlike style attributes is not
+#stripped e.g. by GitHub) works in all common notebook viewers. The 316x64 px
+#image is shown at half the size, to be sharp on high-resolution screens. The
+#size is given as a width, since JupyterLab ignores the height attribute.
+#Without internet access, the alt text is shown instead:
+LOGO_URL = ( 'https://raw.githubusercontent.com/mctools/ncrystal-logo/main/png/'
+             'logo-compact/ncrystal-logo-compact-64h.png' )
+LOGO_HTML = f'<img src="{LOGO_URL}" alt="NCrystal" width="158" align="right">'
+
 def _combine_extras( pkgs, name ):
     """Combine e.g. "name", "name[a]" and "name[b]" into "name[a,b]" (at the
     place of the first of them)."""
@@ -227,7 +239,10 @@ def expand( nb, cfg, target, links_markdown = None ):
             cells.insert( pidx + 1, make_cell( 'code', '\n'.join(lines),
                                                'ncnb-test-parameters' ) )
         return out
-    new = [ make_cell( 'markdown', f'# {s.title}', 'ncnb-title' ) ]
+    title = f'# {s.title}'
+    if target != 'site':
+        title = LOGO_HTML + '\n\n' + title
+    new = [ make_cell( 'markdown', title, 'ncnb-title' ) ]
     if links_markdown:
         new.append( make_cell( 'markdown', links_markdown, 'ncnb-links' ) )
     if target == 'colab':
