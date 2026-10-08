@@ -21,17 +21,18 @@ from .nbsettings import MARKER
 
 TARGETS = ( 'test', 'launch', 'site', 'colab', 'pip', 'conda' )
 
-#The NCrystal logo, shown to the right of the title of the notebooks for users
-#(except on the website, which shows it in the sidebar). It is referred to by
-#URL, since the notebooks are also opened on their own (e.g. in Google Colab),
-#and the HTML <img> tag (with align, which unlike style attributes is not
-#stripped e.g. by GitHub) works in all common notebook viewers. The 316x64 px
-#image is shown at half the size, to be sharp on high-resolution screens. The
-#size is given as a width, since JupyterLab ignores the height attribute.
-#Without internet access, the alt text is shown instead:
+#The NCrystal logo, shown on its own line above the title of the notebooks for
+#users (except on the website, which shows it in the sidebar). It is not
+#floated to the right of the title, where Google Colab's cell toolbar covers
+#it. It is referred to by URL, since the notebooks are also opened on their own
+#(e.g. in Google Colab), and the HTML <img> tag works in all common notebook
+#viewers. The 316x64 px image is shown at half the size, to be sharp on
+#high-resolution screens. The size is given as a width, since JupyterLab
+#ignores the height attribute. Without internet access, the alt text is shown
+#instead:
 LOGO_URL = ( 'https://raw.githubusercontent.com/mctools/ncrystal-logo/main/png/'
              'logo-compact/ncrystal-logo-compact-64h.png' )
-LOGO_HTML = f'<img src="{LOGO_URL}" alt="NCrystal" width="158" align="right">'
+LOGO_HTML = f'<img src="{LOGO_URL}" alt="NCrystal" width="158">'
 
 def _combine_extras( pkgs, name ):
     """Combine e.g. "name", "name[a]" and "name[b]" into "name[a,b]" (at the

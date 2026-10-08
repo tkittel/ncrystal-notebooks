@@ -37,7 +37,7 @@ declaring what the notebook is and what it needs. For example:
 The keys are:
 
 * `title`: The title of the notebook (do not add another title heading in the
-  notebook). The notebooks for users show it with the NCrystal logo next to
+  notebook). The notebooks for users show it with the NCrystal logo above
   it.
 * `shortkey`: A short unique key, of at most 14 lowercase letters or digits.
   It is used in URLs (so it should never change) and on the command line.
