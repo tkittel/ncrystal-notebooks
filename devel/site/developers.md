@@ -99,11 +99,17 @@ The keys are:
   their pages show a warning instead.
 * `test-parameters`: Values used when testing, e.g. to reduce statistics in
   notebooks which take a long time to run (`# test-parameters: n = 1000; m = 2`).
-  The notebook must then put these numbers in a single code cell, tagged
-  `parameters` (in Jupyter Lab: the cog icon in the right sidebar, "Add Tag"),
-  and use the variables in the rest of the notebook. When testing, the test
-  values are assigned in a new cell right after the tagged one, while users and
-  the website see the original values.
+  The notebook itself assigns the values for users, with a comment for
+  readers, e.g.:
+
+  ```python
+  #Number of sampled events (reduce it for faster, but noisier, results):
+  n = 1000000
+  ```
+
+  Each test parameter must be assigned like this (at the start of a line) in
+  exactly one code cell. When testing, its test value is assigned in a new cell
+  right after that cell, while users and the website see the original value.
 
 Long code cells which most readers do not need to see (embedded data, or long
 code for an interactive widget) are shown collapsed on the website and in the

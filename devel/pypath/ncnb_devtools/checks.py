@@ -29,20 +29,24 @@ def check_notebook( nb, cfg ):
         if p not in cfg.plugins:
             problems.append(f'unknown plugin "{p}" (plugins are defined in'
                             ' notebook_settings.toml)')
-    pidx = nb.parameters_cell_indices()
-    if s.test_parameters:
-        if len(pidx) != 1:
-            problems.append('test-parameters need exactly one code cell tagged'
-                            f' "parameters" (found {len(pidx)})')
-        else:
-            import re
-            psrc = source_str(nb.nb['cells'][pidx[0]])
-            for name, _ in s.test_parameters:
-                if not re.search(r'^%s\s*='%re.escape(name), psrc, re.M):
-                    problems.append(f'test parameter "{name}" is not assigned'
-                                    ' in the cell tagged "parameters"')
-    elif len(pidx) > 1:
-        problems.append('more than one cell tagged "parameters"')
+    from .nbsettings import assignment_cells
+    for name, _ in s.test_parameters:
+        idx = assignment_cells( nb.nb['cells'], name )
+        if not idx:
+            problems.append(f'test parameter "{name}" is not assigned (at the'
+                            ' start of a line) in any code cell')
+        elif len(idx) > 1:
+            problems.append(f'test parameter "{name}" is assigned in more than'
+                            ' one code cell (cells '
+                            + ', '.join( str(i+1) for i in idx ) + '), so it'
+                            ' is not clear where its test value should be'
+                            ' assigned')
+    for i, c in enumerate(nb.nb['cells']):
+        if 'parameters' in c.get('metadata',{}).get('tags',[]):
+            problems.append(f'cell {i+1} has the tag "parameters", which is no'
+                            ' longer used (the cells assigning test parameters'
+                            ' are found by their assignments): please remove'
+                            ' it')
     maxlen = s.max_line_length or cfg.max_line_length
     nlong = 0
     for i, c in enumerate(nb.nb['cells']):

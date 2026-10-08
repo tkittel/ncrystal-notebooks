@@ -26,10 +26,10 @@ Keys (title, menutitle, shortkey and section are required):
   max-line-length : Maximum length of lines in code cells, if different from
                     the default.
   test-parameters : Values for tests (e.g. reduced statistics), as assignments
-                    separated by semicolons (e.g. "n = 1000; m = 2"). The
-                    notebook must then have a code cell tagged "parameters"
-                    assigning these names, after which the test values are
-                    assigned when testing (like papermill parameters).
+                    separated by semicolons (e.g. "n = 1000; m = 2"). Each
+                    name must be assigned (at the start of a line) in exactly
+                    one code cell of the notebook, after which its test value
+                    is assigned when testing (see assignment_cells).
 
 When the tool generates code for the notebook (e.g. setup code for testing),
 the code is added to the settings cell after a marker line (MARKER below), and
@@ -168,11 +168,14 @@ class Notebook:
     def shortkey( self ):
         return self.settings.shortkey if self.settings else None
 
-    def parameters_cell_indices( self ):
-        """Indices of code cells tagged "parameters"."""
-        return [ i for i, c in enumerate(self.nb['cells'])
-                 if c['cell_type'] == 'code'
-                 and 'parameters' in c.get('metadata',{}).get('tags',[]) ]
+def assignment_cells( cells, name ):
+    """Indices of the code cells assigning the name at the start of a line
+    (e.g. "n = 1000000"), where the test value of a test parameter with this
+    name is assigned when testing (in a cell inserted after it)."""
+    from .nbfile import source_str
+    pattern = re.compile( r'^%s\s*=(?!=)' % re.escape(name), re.M )
+    return [ i for i, c in enumerate(cells)
+             if c['cell_type'] == 'code' and pattern.search(source_str(c)) ]
 
 def find_notebooks():
     """All notebooks in the repository, sorted by path."""
