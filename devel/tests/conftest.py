@@ -46,6 +46,7 @@ def make_nb( cells ):
              'metadata' : {}, 'nbformat' : 4, 'nbformat_minor' : 4 }
 
 SETTINGS = ( '# NCrystal notebook settings\n# title: {title}\n'
+             '# menutitle: Menu {title}\n'
              '# shortkey: {key}\n# section: basics\n# requires: plot' )
 
 @pytest.fixture

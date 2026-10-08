@@ -108,8 +108,8 @@ def check_all( notebooks, cfg ):
     for nb in notebooks:
         for p in check_notebook( nb, cfg ):
             res.append( ( nb.relpath, p ) )
-    #Uniqueness of shortkeys and titles:
-    for attr in ('shortkey','title'):
+    #Uniqueness of shortkeys and (menu) titles:
+    for attr in ('shortkey','title','menutitle'):
         seen = {}
         for nb in notebooks:
             if nb.settings:

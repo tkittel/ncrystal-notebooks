@@ -2,11 +2,14 @@ def short_description():
     return 'Create a new notebook (asking for its settings)'
 
 def main( parser ):
-    parser.init( short_description() + """. Asks for the title, shortkey,
-    section, requirements and plugins of the new notebook (unless given with
+    parser.init( short_description() + """. Asks for the title, menu title,
+    shortkey, section, requirements and plugins of the new notebook (unless given with
     the options below), and creates it with its settings cell, ready for
     editing with the launch mode.""" )
     parser.add_argument( '--title', help = 'Title of the notebook.' )
+    parser.add_argument( '--menutitle', help = """Short title of the notebook
+                         (at most 30 characters), for the menu of the
+                         website.""" )
     parser.add_argument( '--shortkey', help = """Short unique key (lowercase
                          letters and digits, at most 14 characters).""" )
     parser.add_argument( '--section', help = 'Key of the section.' )
@@ -75,12 +78,14 @@ def createnew( args ):
     from .config import load_config
     from .dirs import reporoot
     from .nbsettings import find_notebooks, NotebookSettings, SettingsError
-    from .nbsettings import HEADER, _shortkey_re
+    from .nbsettings import HEADER, _shortkey_re, MAX_MENUTITLE_LENGTH
     from .nbfile import make_cell, write
     cfg = load_config()
     notebooks = find_notebooks()
     taken_keys = set( nb.shortkey for nb in notebooks if nb.shortkey )
     taken_titles = set( nb.settings.title for nb in notebooks if nb.settings )
+    taken_menutitles = set( nb.settings.menutitle for nb in notebooks
+                            if nb.settings )
     ask = _Asker()
 
     def check_title( v ):
@@ -89,6 +94,19 @@ def createnew( args ):
         if v in taken_titles:
             return 'This title is already used by another notebook'
     title = ask.get( args.title, '--title', 'Title', check_title )
+
+    def check_menutitle( v ):
+        if not v:
+            return 'A menu title is needed'
+        if len(v) > MAX_MENUTITLE_LENGTH:
+            return f'The menu title must be at most {MAX_MENUTITLE_LENGTH} characters'
+        if v in taken_menutitles:
+            return 'This menu title is already used by another notebook'
+    menutitle = ask.get( args.menutitle, '--menutitle',
+                         'Short title for the menu of the website',
+                         check_menutitle,
+                         default = ( title if len(title) <= MAX_MENUTITLE_LENGTH
+                                     else None ) )
 
     def check_shortkey( v ):
         if not _shortkey_re.match(v):
@@ -150,7 +168,8 @@ def createnew( args ):
        and path.parent.resolve() != nbdir:
         raise SystemExit(f'ERROR: The notebook must be in {nbdir}')
 
-    lines = [ HEADER, f'# title: {title}', f'# shortkey: {shortkey}',
+    lines = [ HEADER, f'# title: {title}', f'# menutitle: {menutitle}',
+              f'# shortkey: {shortkey}',
               f'# section: {section}' ]
     if requires:
         lines.append( '# requires: ' + ', '.join(requires) )

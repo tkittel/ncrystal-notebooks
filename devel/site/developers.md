@@ -52,8 +52,8 @@ To add a new notebook, run:
 ncnotebookdevtool createnew
 ```
 
-This asks for the title, shortkey, section, requirements and plugins of the
-notebook, creates it with its settings cell (by default as
+This asks for the title, menu title, shortkey, section, requirements and
+plugins of the notebook, creates it with its settings cell (by default as
 `notebooks/SHORTKEY/SHORTKEY.ipynb`), and tells you how to `launch` it for
 editing.
 
@@ -65,6 +65,7 @@ declaring what the notebook is and what it needs. For example:
 ```python
 # NCrystal notebook settings
 # title: Compose materials from structures in CIF files and databases
+# menutitle: Materials from CIF files
 # shortkey: cif
 # section: materials
 # requires: plot, cif
@@ -75,6 +76,8 @@ The keys are:
 * `title`: The title of the notebook (do not add another title heading in the
   notebook). The notebooks for users show it with the NCrystal logo above
   it.
+* `menutitle`: A short version of the title (at most 30 characters), shown in
+  the menu of the website, where long titles take up too much space.
 * `shortkey`: A short unique key, of at most 14 lowercase letters or digits.
   It is used in URLs (so it should never change) and on the command line.
 * `section`: The section of the website in which the notebook is listed (one

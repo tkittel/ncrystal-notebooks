@@ -52,21 +52,28 @@ def test_precommit_strips_outputs_and_metadata( fakerepo ):
 
 @pytest.mark.parametrize( 'settings, error', [
     ( 'x = 1', 'must start with' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: one', 'missing "section"' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: Bad_Key\n# section: basics',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: one', 'missing "section"' ),
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: Bad_Key\n# section: basics',
       'invalid shortkey' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: abcdefghijklmno\n# section: basics',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: abcdefghijklmno\n# section: basics',
       'invalid shortkey' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: basics\n# foo: bar',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# foo: bar',
       'unknown key' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: nosuch',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: nosuch',
       'unknown section' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: basics\n# requires: nosuch',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# requires: nosuch',
       'unknown requirement' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: basics\n# plugins: Nosuch',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# plugins: Nosuch',
       'unknown plugin' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: one\n# section: basics',
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: one\n# section: basics',
       'shortkey "one" is also used' ),
+    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: basics',
+      'missing "menutitle"' ),
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: ' + 'x'*31
+      + '\n# shortkey: k\n# section: basics', 'longer than 30 characters' ),
+    ( '# NCrystal notebook settings\n# title: T\n# menutitle: Menu Notebook one'
+      '\n# shortkey: k\n# section: basics',
+      'menutitle "Menu Notebook one" is also used' ),
 ] )
 def test_settings_errors( fakerepo, settings, error ):
     nb = make_nb( [ ('code', settings), ('markdown','text') ] )
@@ -262,7 +269,8 @@ def test_hidden_input( fakerepo ):
                         for c in expand( nbobj, cfg, target )['cells'] )
 
 def test_createnew( fakerepo ):
-    args = [ 'createnew', '--title', 'A new notebook', '--shortkey', 'newnb',
+    args = [ 'createnew', '--title', 'A new notebook', '--menutitle', 'New',
+             '--shortkey', 'newnb',
              '--section', 'basics', '--requires', 'plot', '--plugins', 'none' ]
     p = run_tool( *args )
     assert 'launch newnb' in p.stdout
@@ -273,9 +281,15 @@ def test_createnew( fakerepo ):
     #Errors: existing shortkey, unknown section, missing option:
     for change, err in [ ( {}, 'already used' ),
                          ( { '--shortkey' : 'other', '--title' : 'Other',
+                             '--menutitle' : 'Other',
                              '--section' : 'nosuch' }, 'Unknown section' ),
                          ( { '--shortkey' : 'other', '--title' : None },
-                           'provide the --title option' ) ]:
+                           'provide the --title option' ),
+                         ( { '--shortkey' : 'other', '--title' : 'Other' },
+                           'menu title is already used' ),
+                         ( { '--shortkey' : 'other', '--title' : 'Other',
+                             '--menutitle' : None },
+                           'provide the --menutitle option' ) ]:
         a = list(args)
         for k, v in change.items():
             i = a.index(k)

@@ -227,7 +227,9 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
         lines += [ '\n'.join(html), '' ]
         lines += [ '```{toctree}', ':hidden:', f':caption: {section.title}',
                    '' ]
-        lines += [ f'notebooks/{nb.settings.shortkey}' for nb in nbs ]
+        #(The menu shows the short menu titles of the notebooks:)
+        lines += [ f'{nb.settings.menutitle} <notebooks/{nb.settings.shortkey}>'
+                   for nb in nbs ]
         lines += [ '```', '' ]
     lines += [ '```{toctree}', ':hidden:', ':caption: Development', '',
                'developers', '```', '' ]
