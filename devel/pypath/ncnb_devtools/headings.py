@@ -4,10 +4,11 @@ Headings of sections (## and ###) end with a key in brackets, e.g.
 "## Interactive results [results]", unique within the notebook. In the
 versions of the notebooks for users, the key is removed from the heading, and
 an anchor is added instead, with the shortkey of the notebook and the key as
-id (e.g. "sapphire-results", unique on the whole website), which links to
-the section can use (e.g. sapphire.html#sapphire-results on the website). They
-keep working if the heading text changes. Links to sections within the same
-notebook are written as [text](#key) by authors, and changed accordingly.
+id (e.g. "sapphirefilter-results", unique on the whole website), which links to
+the section can use (e.g. sapphirefilter.html#sapphirefilter-results on the
+website). They keep working if the heading text changes. Links to sections
+within the same notebook are written as [text](#key) by authors, and changed
+accordingly.
 """
 
 import re

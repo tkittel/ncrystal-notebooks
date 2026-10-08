@@ -165,8 +165,8 @@ at most 10 characters, and must be unique within the notebook. Readers do not
 see them: on the website and in the notebooks for download and for Google
 Colab, the key is removed from the heading, and the section gets a permanent
 anchor named after the shortkey of the notebook and the key, e.g.
-`sapphire-results`. Links to the section (like
-`.../notebooks/sapphire.html#sapphire-results` on the website) therefore keep
+`sapphirefilter-results`. Links to the section (like
+`.../notebooks/sapphirefilter.html#sapphirefilter-results` on the website) therefore keep
 working when the heading is reworded. So choose keys which will not need to
 change, and do not change existing keys. Deeper headings (`####` and below)
 have no keys.
