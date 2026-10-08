@@ -83,7 +83,8 @@ suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
 #Compact layout of the lists of notebooks on the front page, text outputs of
 #cells in scrollable boxes, with a background (in light and dark mode)
 #different from both the page and the code cells, and the logo always visible
-#at the top of the sidebar (which the theme scrolls to show the current page):
+#at the top of the sidebar (which the theme scrolls to show the current page),
+#where the sections stand out from their notebooks:
 CSS = '''
 :root { --ncnb-output-bg: #fbf8ec; --ncnb-output-bar: #d9c98f; }
 html[data-theme=dark] { --ncnb-output-bg: #2a2619; --ncnb-output-bar: #6b5f35; }
@@ -100,6 +101,9 @@ html[data-theme=dark] { --ncnb-output-bg: #2a2619; --ncnb-output-bar: #6b5f35; }
 .bd-article section:has(> ul.ncnb-list) > .toctree-wrapper { display: none; }
 ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
 ul.ncnb-list li { margin: 0.05em 0 !important; }
+nav.bd-links li.toctree-l1 > a {
+  font-weight: 600; margin-top: 0.4em;
+  background: var(--pst-color-surface); border-radius: 4px; }
 .bd-sidebar-primary .sidebar-primary-item:has(> .navbar-brand.logo) {
   position: sticky; top: -1rem; z-index: 2;
   margin-top: -1rem; padding: 1rem 0 0.5rem 0;
