@@ -214,6 +214,11 @@ description = "mccode-antlr (McStas without installing it)"
 pip = ["mccode-antlr"]
 conda = ["mccode-antlr"]
 
+[requirements.scipp]
+description = "scipp and plopp (data with units and uncertainties, and plots)"
+pip = ["scipp", "plopp"]
+conda = ["scipp", "plopp"]
+
 ################################################################################
 # NCrystal plugins, which notebooks declare in the "plugins" line of their
 # settings cell. The value is the pip requirement used to install the plugin
