@@ -1,7 +1,6 @@
 """Tests of devel/bin/ncnotebookdevtool (which do not run notebooks)."""
 
 import json
-import shutil
 
 import pytest
 from conftest import INTRO, REPO, SETTINGS, make_nb, run_tool
@@ -450,7 +449,6 @@ def test_test_parameters_in_several_cells( fakerepo ):
         'print(n,m)' ]
     assert len( { c['id'] for c in e['cells'] } ) == len( e['cells'] )
 
-@pytest.mark.skipif( shutil.which('ruff') is None, reason = 'needs ruff' )
 def test_lint( fakerepo ):
     #The generated setup code is included (no "undefined name NC"):
     assert 'Lint OK' in run_tool( 'lint' ).stdout

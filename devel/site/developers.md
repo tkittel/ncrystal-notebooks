@@ -18,8 +18,9 @@ ncnotebookdevtool
 
 Running `ncnotebookdevtool` without arguments lists the available modes, and
 `ncnotebookdevtool MODE --help` describes each of them. The tool needs Python
-3.10 or later, and (for running notebooks) either pip or conda (mamba,
-micromamba or conda).
+3.10 or later, [ruff](https://docs.astral.sh/ruff/) for checking the code (e.g.
+`pip install 'ruff>=0.16.10,<0.17'`), and (for running notebooks) either pip
+or conda (mamba, micromamba or conda).
 
 ## Editing a notebook
 
@@ -206,9 +207,8 @@ This brings all notebooks into the canonical form and checks them (it is fast,
 and does not run them). The same checks run in CI, and fail if a notebook is
 not in canonical form.
 
-If [ruff](https://docs.astral.sh/ruff/) is installed (e.g. `pip install ruff`),
-`precommit` also lints the code, as CI always does (this can also be done
-alone with `ncnotebookdevtool lint`):
+`precommit` also lints the code with [ruff](https://docs.astral.sh/ruff/), as
+CI does (this can also be done alone with `ncnotebookdevtool lint`):
 
 * The code in the notebooks is only checked for a few simple things: syntax
   errors, undefined names, misplaced statements (like `return` outside a
