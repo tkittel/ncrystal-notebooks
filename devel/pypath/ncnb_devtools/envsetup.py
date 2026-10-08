@@ -2,6 +2,7 @@
 run notebooks)."""
 
 import pathlib
+import threading
 
 from .envs import (
     EnvRequest,
@@ -89,8 +90,22 @@ class EnvSetup:
         self._wheels = None
         self._bases = {}
         self._overlays = {}
+        #Environments can be requested from several threads (see run_batch):
+        #each is created once, and conda environments one at a time (as they
+        #share the package cache):
+        self._lock = threading.Lock()
+        self._locks = {}
+        self._conda_lock = threading.Lock()
+
+    def _lock_for( self, key ):
+        with self._lock:
+            return self._locks.setdefault( key, threading.Lock() )
 
     def _ncrystal_wheels( self ):
+        with self._lock_for('wheels'):
+            return self._ncrystal_wheels_impl()
+
+    def _ncrystal_wheels_impl( self ):
         if self.ncrystal_src and self._wheels is None:
             self._wheels = build_ncrystal_wheels(
                 self.ncrystal_src, self.workdir / 'ncrystal_wheels',
@@ -104,20 +119,30 @@ class EnvSetup:
         reqs = Requirements( nb.settings, self.cfg )
         req = EnvRequest( reqs, kind, ncrystal_src = bool(self.ncrystal_src) )
         bkey = repr(req.key)
-        if bkey not in self._bases:
-            self._bases[bkey] = create_base_env(
-                req, python = self.args.python, fresh = self.args.fresh_envs,
-                log = self.log )
+        with self._lock_for( 'base' + bkey ):
+            if bkey not in self._bases:
+                conda = ( kind == 'conda' )
+                if conda:
+                    self._conda_lock.acquire()
+                try:
+                    self._bases[bkey] = create_base_env(
+                        req, python = self.args.python,
+                        fresh = self.args.fresh_envs, log = self.log )
+                finally:
+                    if conda:
+                        self._conda_lock.release()
         base = self._bases[bkey]
         if not req.needs_overlay:
             return base
         okey = repr(req.overlay_key())
-        if okey not in self._overlays:
-            path = self.workdir / 'overlays' / f'overlay{len(self._overlays)}'
-            ov = create_overlay( req, base, path,
-                                 ncrystal_wheels = self._ncrystal_wheels(),
-                                 log = self.log )
-            if self.ncrystal_src:
-                print_msg('  Verified: '+verify_ncrystal(ov),flush=True)
-            self._overlays[okey] = ov
+        with self._lock_for( 'overlay' + okey ):
+            if okey not in self._overlays:
+                path = ( self.workdir / 'overlays'
+                         / f'overlay{len(self._overlays)}' )
+                ov = create_overlay( req, base, path,
+                                     ncrystal_wheels = self._ncrystal_wheels(),
+                                     log = self.log )
+                if self.ncrystal_src:
+                    print_msg('  Verified: '+verify_ncrystal(ov),flush=True)
+                self._overlays[okey] = ov
         return self._overlays[okey]

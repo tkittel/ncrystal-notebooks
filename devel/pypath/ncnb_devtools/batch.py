@@ -115,8 +115,8 @@ def run_batch( jobs, args, cfg, workdir, target ):
     from .expand import colab_restart_cell, expand
     from .runner import prepare_rundir, run_notebook
     setup = EnvSetup( args, cfg, workdir )
-    prepared = []
-    for nb, kind in jobs:
+    def prepare( job ):
+        nb, kind = job
         env = setup.env_for( nb, kind )
         expanded = expand( nb, cfg, target )
         nbfile = prepare_rundir( workdir / nb.shortkey, nb.path.name,
@@ -124,9 +124,12 @@ def run_batch( jobs, args, cfg, workdir, target ):
         #(On Colab, the kernel restarts after installing conda:)
         restart_after = ( colab_restart_cell( expanded )
                           if target == 'colabtest' else None )
-        prepared.append( ( nb, env, nbfile,
-                           time_limits( args, cfg, target, nb.settings.slow ),
-                           restart_after ) )
+        return ( nb, env, nbfile,
+                 time_limits( args, cfg, target, nb.settings.slow ),
+                 restart_after )
+    #(The environments are created in parallel too:)
+    with ThreadPoolExecutor( max_workers = max(1,args.j) ) as ex:
+        prepared = list( ex.map( prepare, jobs ) )
     #Warm up each environment, so one-time costs (e.g. building the font cache
     #of matplotlib, or the first imports of large packages on macOS) do not
     #count in the times of the notebooks:
