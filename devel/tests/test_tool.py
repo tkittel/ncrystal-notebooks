@@ -499,3 +499,40 @@ def test_colab_conda_installs_openssl( fakerepo ):
     assert 'condacolab.install_miniforge()' in source_str(cells[1])
     assert ( '!mamba install -y -q --override-channels -c conda-forge'
              ' ncrystal matplotlib openmc openssl' ) in source_str(cells[2])
+
+def test_nbexec_restart_after_cell( tmp_path ):
+    #With a restart cell id, _nbexec.py continues after that cell in a new
+    #kernel (as on Google Colab after condacolab restarts the kernel), also if
+    #the kernel died. Without it, a dying kernel is a failure:
+    import json
+    import subprocess
+    import sys
+    pytest.importorskip('nbclient')
+    pytest.importorskip('ipykernel')
+    from ncnb_devtools.dirs import reporoot
+    script = reporoot() / 'devel' / 'pypath' / 'ncnb_devtools' / '_nbexec.py'
+    def make_nb( name, sources, restart_index ):
+        cells = [ { 'cell_type' : 'code', 'id' : f'c{i}', 'metadata' : {},
+                    'execution_count' : None, 'outputs' : [], 'source' : s }
+                  for i, s in enumerate(sources) ]
+        cells[restart_index]['id'] = 'restartme'
+        nb = { 'cells' : cells, 'metadata' : {}, 'nbformat' : 4,
+               'nbformat_minor' : 5 }
+        ( tmp_path / name ).write_text( json.dumps(nb), encoding = 'utf-8' )
+    first = ( 'import os\nx = 1\n'
+              'open("pid","w").write(str(os.getpid()))' )
+    check = ( 'import os\nassert "x" not in globals()\n'
+              'assert open("pid").read() != str(os.getpid())' )
+    make_nb( 'graceful.ipynb',
+             [ first, 'get_ipython().kernel.do_shutdown(True)', check ], 1 )
+    make_nb( 'abrupt.ipynb', [ first, 'import os\nos._exit(0)', check ], 1 )
+    def run( name, *restart ):
+        return subprocess.run( [ sys.executable, str(script), name,
+                                 f'out_{name}', '120', *restart ],
+                               cwd = tmp_path, capture_output = True,
+                               text = True, check = False )
+    for name in ( 'graceful.ipynb', 'abrupt.ipynb' ):
+        p = run( name, 'restartme' )
+        assert p.returncode == 0, p.stdout + p.stderr
+        assert 'Restarting the kernel after cell 2' in p.stdout
+    assert run( 'abrupt.ipynb' ).returncode != 0

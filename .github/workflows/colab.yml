@@ -6,8 +6,8 @@ name: colab
 # version conflicts there. Each notebook runs in its own fresh container, as
 # on Colab, where every notebook starts in a fresh runtime (so what one
 # notebook installs can not hide a missing requirement of another). It does
-# not test Colab itself (e.g. its user interface). Notebooks needing conda are
-# not supported yet.
+# not test Colab itself (e.g. its user interface). Notebooks needing conda
+# install it with condacolab, after which the kernel is restarted, as on Colab.
 #
 # The image is large (about 7 GB compressed). Whether to keep running this on
 # every push is to be decided once its overhead is known.

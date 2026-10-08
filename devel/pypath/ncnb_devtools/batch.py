@@ -110,22 +110,26 @@ def run_batch( jobs, args, cfg, workdir, target ):
     from concurrent.futures import ThreadPoolExecutor
 
     from .envsetup import EnvSetup
-    from .expand import expand
+    from .expand import colab_restart_cell, expand
     from .runner import prepare_rundir, run_notebook
     setup = EnvSetup( args, cfg, workdir )
     prepared = []
     for nb, kind in jobs:
         env = setup.env_for( nb, kind )
+        expanded = expand( nb, cfg, target )
         nbfile = prepare_rundir( workdir / nb.shortkey, nb.path.name,
-                                 expand( nb, cfg, target ) )
+                                 expanded )
+        #(On Colab, the kernel restarts after installing conda:)
+        restart_after = ( colab_restart_cell( expanded )
+                          if target == 'colabtest' else None )
         prepared.append( ( nb, env, nbfile,
-                           time_limits( args, cfg, target,
-                                        nb.settings.slow ) ) )
+                           time_limits( args, cfg, target, nb.settings.slow ),
+                           restart_after ) )
     #Warm up each environment, so one-time costs (e.g. building the font cache
     #of matplotlib, or the first imports of large packages on macOS) do not
     #count in the times of the notebooks:
     warmed = set()
-    for _, env, _, _ in prepared:
+    for _, env, _, _, _ in prepared:
         if str(env.python) not in warmed:
             warmed.add( str(env.python) )
             env.run( [ env.python, '-c', WARMUP_CODE ] )
@@ -136,13 +140,13 @@ def run_batch( jobs, args, cfg, workdir, target ):
     ntot = len(prepared)
 
     def run( item ):
-        nb, env, nbfile, ( limit, minimum ) = item
+        nb, env, nbfile, ( limit, minimum ), restart_after = item
         with lock:
             counts['started'] += 1
             print(f'Running ({counts["started"]}/{ntot}) {nb.shortkey}'
                   f' ({nb.relpath}) in {env.description}', flush = True)
         res = run_notebook( env, nbfile, limit,
-                            workdir / f'{nb.shortkey}.log' )
+                            workdir / f'{nb.shortkey}.log', restart_after )
         if res.ok and minimum is not None and res.seconds < minimum:
             res.ok = False
             res.message = ( f'The notebook is marked as slow, but ran in only'

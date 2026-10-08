@@ -211,6 +211,16 @@ def install_comment( reqs, target ):
         lines += [ '#   ' + c for c in conda_install_cmds(reqs) ]
     return lines
 
+#The id of the Colab installation cell installing conda with condacolab, which
+#restarts the kernel (only in notebooks needing conda, see colab_install_cells):
+COLAB_RESTART_CELL_ID = 'ncnb-install0'
+
+def colab_restart_cell( expanded ):
+    """The id of the cell restarting the kernel in a notebook expanded for
+    Google Colab (a dict), or None if there is none."""
+    ids = [ c.get('id') for c in expanded['cells'] ]
+    return COLAB_RESTART_CELL_ID if COLAB_RESTART_CELL_ID in ids else None
+
 def colab_install_cells( reqs ):
     """Installation cells for Google Colab, as lists of lines."""
     if not reqs.needs_conda:

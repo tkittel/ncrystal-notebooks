@@ -254,8 +254,9 @@ own fresh container, as on Colab, where every notebook starts in a fresh
 runtime (so what one notebook installs can not hide a missing requirement of
 another). It uses `ncnotebookdevtool test --colab`, which only works in that
 image. Notebooks
-marked as slow only run in its weekly (and manually started) runs, and
-notebooks needing conda are not yet tested there.
+marked as slow only run in its weekly (and manually started) runs. Notebooks
+needing conda install it on Colab with condacolab, which restarts the kernel;
+the tool then continues with the next cells in a new kernel, as Colab does.
 
 ## The website
 

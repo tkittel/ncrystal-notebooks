@@ -41,9 +41,10 @@ class RunResult:
         self.message = message
         self.output = output
 
-def run_notebook( env, nbfile, limit, logfile ):
+def run_notebook( env, nbfile, limit, logfile, restart_after = None ):
     """Run the notebook file (in its directory) in the environment. It fails
-    if its execution takes longer than limit seconds."""
+    if its execution takes longer than limit seconds. If restart_after is the
+    id of a cell, the kernel is restarted after it (see _nbexec.py)."""
     nbfile = pathlib.Path(nbfile)
     rundir = nbfile.parent
     output = rundir / ( nbfile.stem + '.executed.ipynb' )
@@ -59,7 +60,8 @@ def run_notebook( env, nbfile, limit, logfile ):
     t0 = time.time()
     try:
         p = subprocess.run( [ str(env.python), str(script), nbfile.name,
-                              output.name, str(limit) ],
+                              output.name, str(limit),
+                              *( [restart_after] if restart_after else [] ) ],
                             cwd = rundir, env = environ, text = True,
                             check = False,
                             encoding = 'utf-8', errors = 'replace',

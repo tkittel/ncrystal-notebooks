@@ -19,8 +19,10 @@ def main( parser ):
                          the current Python environment, without the tool
                          installing anything. This modifies the environment,
                          and is only possible in Google's Colab runtime image
-                         (as in the colab workflow of the repository).
-                         Notebooks needing conda are not supported yet.""" )
+                         (as in the colab workflow of the repository). For
+                         notebooks needing conda, which install it with
+                         condacolab, the kernel is restarted after that, as on
+                         Colab.""" )
     parser.add_argument( '--write-selected', metavar = 'FILE',
                          help = """Only write the shortkeys of the selected
                          notebooks to this file (one per line), instead of
@@ -78,16 +80,6 @@ def run_tests( args ):
         if args.select == 'conda' and not reqs.needs_conda:
             continue
         if args.colab:
-            if reqs.needs_conda:
-                #TODO: The Colab versions of these notebooks install conda with
-                #condacolab, which restarts the kernel (nbclient would see a
-                #crash):
-                msg = ( f'{nb.shortkey} needs conda, which is not yet'
-                        ' supported with --colab' )
-                if args.NOTEBOOK:
-                    raise SystemExit(f'ERROR: {msg}')
-                print(f'Skipping {msg}')
-                continue
             jobs.append( ( nb, 'colab' ) )
             continue
         kind = env_kind( reqs, args.env )
