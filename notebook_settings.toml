@@ -209,8 +209,9 @@ conda_platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 [requirements.mcstas]
 description = "McStas"
 #Without MPI, with which McStas compiles by default (and fails if it is
-#missing), so notebooks run mcrun with --no-mpi:
-conda = ["mcstas-core"]
+#missing), so notebooks run mcrun with --no-mpi. McStas 3.9.2 or later, for
+#the NCrystal support of its components (e.g. Union_NCrystal_material):
+conda = ["mcstas-core>=3.9.2"]
 setup = """
 #Let McStas find its resources:
 import os
