@@ -499,6 +499,8 @@ def test_colab_conda_installs_openssl( fakerepo ):
     assert 'condacolab.install_miniforge()' in source_str(cells[1])
     #(Pinned until condacolab 0.2 has been tested:)
     assert '%pip -q install "condacolab<0.2"' in source_str(cells[1])
+    #(Fixing the wrapper of the Python executable from condacolab 0.1:)
+    assert ' -x $@", \' "$@"\')' in source_str(cells[2])
     assert ( '!mamba install -y -q --override-channels -c conda-forge'
              ' ncrystal matplotlib openmc openssl' ) in source_str(cells[2])
 

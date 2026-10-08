@@ -239,7 +239,18 @@ def colab_install_cells( reqs ):
     #condacolab keeps the Python of Colab, which otherwise ends up using the
     #older OpenSSL of the system, which conda packages can not use (e.g. when
     #importing OpenMC: "libssl.so.3: version `OPENSSL_3.2.0' not found"):
-    second = [ '#Install software on Google Colab:',
+    #condacolab 0.1 replaces the Python executable with a wrapper which splits
+    #arguments with spaces (as "$@" is not quoted, which e.g. breaks the
+    #"python3 -c ..." commands of McStas's mcrun), and makes Python skip the
+    #first line of scripts (-x). This is fixed in condacolab 0.2, so the
+    #wrapper is changed accordingly (without the kernel noticing, as the
+    #wrapper only starts it):
+    fix = [ '#Fix the wrapper of the Python executable from condacolab 0.1:',
+            'import pathlib as _pl, sys as _sys',
+            '_w = _pl.Path(_sys.executable.removesuffix(".real"))',
+            'if _w.is_file() and " -x $@" in _w.read_text():',
+            '    _w.write_text(_w.read_text().replace(" -x $@", \' "$@"\'))' ]
+    second = [ *fix, '#Install software on Google Colab:',
                '!mamba install -y -q --override-channels -c conda-forge '
                + _quote( [ *reqs.conda_packages, 'openssl' ] ) ]
     extra = reqs.conda_pip_packages + reqs.plugins
