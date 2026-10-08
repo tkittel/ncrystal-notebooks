@@ -9,9 +9,9 @@ name: colab
 # not test Colab itself (e.g. its user interface). Notebooks needing conda
 # install it with condacolab, after which the kernel is restarted, as on Colab.
 #
-# The image is large (about 7 GB compressed). All notebooks run on every push,
-# the slow ones in a separate job in parallel, so that the others finish
-# sooner.
+# The image is large (about 7 GB compressed). All notebooks run on every push:
+# the normal ones together in one job, and each slow one in its own job, all in
+# parallel, so that the slow ones do not add up.
 
 on:
   push:
@@ -24,15 +24,39 @@ env:
 
 jobs:
 
+  #The jobs of the colab job below: one for the normal notebooks, and one for
+  #each slow notebook (as selected by the tool):
+  select:
+    name: Select the jobs
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.select.outputs.include }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Select the jobs
+      id: select
+      run: |
+        python3 devel/bin/ncnotebookdevtool test --colab --only-slow \
+          --write-selected slow.txt
+        python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+        import json, pathlib
+        include = [ { 'name' : 'Notebooks', 'key' : 'normal',
+                      'select' : '--skip-slow' } ]
+        for sk in pathlib.Path('slow.txt').read_text().split():
+            include.append( { 'name' : f'Slow notebook {sk}', 'key' : sk,
+                              'select' : sk } )
+        print( 'include=' + json.dumps(include) )
+        EOF
+        cat "$GITHUB_OUTPUT"
+
   colab:
     name: ${{ matrix.name }} in the Colab runtime image
+    needs: select
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { name: 'Notebooks', key: 'normal', select: '--skip-slow' }
-          - { name: 'Slow notebooks', key: 'slow', select: '--only-slow' }
+        include: ${{ fromJSON(needs.select.outputs.include) }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     #The image does not fit in the free disk space of the runner otherwise:
