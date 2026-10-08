@@ -16,7 +16,26 @@ def patch_jupyter_client():
     ipywidgets.interact, which then hang until the cell timeout, while the
     kernel sent its reply right away. Waiting in short slices avoids this."""
     from queue import Empty
-    from jupyter_client.channels import AsyncZMQSocketChannel
+    import importlib
+    import inspect
+    #The asynchronous channel class used by nbclient, in jupyter_client 8 and
+    #later, 7 (e.g. in Google's Colab runtime image), and 6:
+    candidates = [ ('jupyter_client.channels','AsyncZMQSocketChannel'),
+                   ('jupyter_client.channels','ZMQSocketChannel'),
+                   ('jupyter_client.asynchronous.channels','ZMQSocketChannel') ]
+    AsyncZMQSocketChannel = None
+    for modname, clsname in candidates:
+        try:
+            cls = getattr( importlib.import_module(modname), clsname )
+        except (ImportError, AttributeError):
+            continue
+        if inspect.iscoroutinefunction( cls.get_msg ):
+            AsyncZMQSocketChannel = cls
+            break
+    if AsyncZMQSocketChannel is None:
+        print('Note: not working around delayed kernel messages (unknown'
+              ' version of jupyter_client)')
+        return
     orig_get_msg = AsyncZMQSocketChannel.get_msg
     async def get_msg( self, timeout = None ):
         deadline = None if timeout is None else time.monotonic() + timeout
