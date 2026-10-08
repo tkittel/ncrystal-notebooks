@@ -285,7 +285,7 @@ the tool then continues with the next cells in a new kernel, as Colab does.
 The website is built in CI from the main branch and published on GitHub
 Pages. Each section has a page, with a description of the section (from
 `notebook_settings.toml`) and its notebooks. The notebooks are run for the
-website (for now except those marked as slow), and
+website, and
 the versions of the notebooks for download and for Google Colab are generated
 at the same time. To build it locally:
 

@@ -39,14 +39,12 @@ jobs:
       with:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-v1-${{ runner.os }}
-    #TEMPORARY: notebooks marked as slow are skipped during the current period
-    #of development (their pages show a warning). Remove --skip-slow below to
-    #run them again.
+    #(GitHub's runners have 4 cores:)
     - name: Run notebooks and build website
       env:
         NCNOTEBOOKDEVTOOL_GITHUB_REPO: ${{ github.repository }}
         NCRYSTAL_NOTEBOOK_DATA_CACHE: ${{ runner.temp }}/ncnbdata
-      run: ./devel/bin/ncnotebookdevtool site -j 3 --skip-slow -o "${{ runner.temp }}/site" --workdir "${{ runner.temp }}/work"
+      run: ./devel/bin/ncnotebookdevtool site -j 4 -o "${{ runner.temp }}/site" --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
