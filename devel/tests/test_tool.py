@@ -1,6 +1,7 @@
 """Tests of devel/bin/ncnotebookdevtool (which do not run notebooks)."""
 
 import json
+import shutil
 
 import pytest
 from conftest import INTRO, REPO, SETTINGS, make_nb, run_tool
@@ -640,3 +641,22 @@ def test_list_settings():
     out = run_tool( 'list', '--settings' ).stdout
     assert '**Requirements** (for `requires`):' in out
     assert '`condacolab<0.2` (with pip), and also install `openssl`' in out
+
+def test_site_links_to_notebooks_not_included( fakerepo, tmp_path ):
+    #A website with only some notebooks links to the others on the published
+    #website:
+    from ncnb_devtools.config import load_config
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
+    from ncnb_devtools.site import write_sources
+    shutil.copytree( REPO / 'devel' / 'site', fakerepo / 'devel' / 'site' )
+    _write_md_nb( fakerepo, '## Results [res]\nSee [two](nb:two),'
+                  ' [its intro](nb:two:intro) and [mine](nb:one:res).' )
+    cfg = load_config()
+    one = select_notebooks( ['one'], find_notebooks() )
+    write_sources( one, {}, cfg, tmp_path / 'src', tmp_path / 'colab' )
+    page = json.loads( ( tmp_path / 'src' / 'notebooks' / 'one.ipynb'
+                         ).read_text() )
+    md = ''.join( page['cells'][-1]['source'] )
+    url = cfg.website_url + '/notebooks/two.html'
+    assert md.endswith( f'See [two]({url}), [its intro]({url}#two-intro) and'
+                        ' [mine](#nb-one-res).' )

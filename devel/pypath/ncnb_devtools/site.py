@@ -199,11 +199,13 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
         devdoc.replace( SETTINGS_TABLES_MARKER, settings_tables_markdown(cfg) ),
         encoding = 'utf-8' )
 
+    included = { nb.settings.shortkey for nb in notebooks }
     for nb in notebooks:
         sk = nb.settings.shortkey
         page = executed.get(sk)
         if page is None:
             page = expand( nb, cfg, 'site', links_markdown(nb,cfg) )
+        link_missing_notebooks_externally( page, included, cfg )
         if warnings and sk in warnings:
             #After the title and the links:
             page['cells'].insert( 2, { 'cell_type' : 'markdown',
@@ -259,6 +261,29 @@ def write_sources( notebooks, executed, cfg, srcdir, colabdir,
     lines += [ '```{toctree}', ':hidden:', ':caption: Development', '',
                'developers', '```', '' ]
     ( srcdir / 'index.md' ).write_text( '\n'.join(lines), encoding = 'utf-8' )
+
+def link_missing_notebooks_externally( page, included, cfg ):
+    """In a website with only some of the notebooks, links to the others (see
+    replace_keys_with_anchors) go to their pages on the published website."""
+    import re
+
+    from .headings import anchor_id
+    from .nbfile import source_str
+    url = f'{cfg.website_url}/notebooks'
+    def fix_page( m ):
+        sk = m.group(1)
+        return m.group(0) if sk in included else f']({url}/{sk}.html)'
+    def fix_label( m ):
+        sk, key = m.group(1), m.group(2)
+        return ( m.group(0) if sk in included
+                 else f']({url}/{sk}.html#{anchor_id(sk,key)})' )
+    for c in page['cells']:
+        if c['cell_type'] == 'markdown':
+            src = source_str(c)
+            src = re.sub( r'\]\(([a-z0-9]+)\.ipynb\)', fix_page, src )
+            src = re.sub( r'\]\(#nb-([a-z0-9]+)-([a-z][a-z0-9]*)\)', fix_label,
+                          src )
+            c['source'] = src
 
 def notebook_list( notebooks, nbdir ):
     """List of links to the notebooks (with their titles), as raw HTML for a
