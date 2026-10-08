@@ -22,10 +22,3 @@ ignore = [
     # comprehension:
     "PERF401",
 ]
-
-[lint.per-file-ignores]
-# Imported script (from its author), kept close to its original: only the basic
-# checks (pyflakes and syntax errors):
-"utilities/ncrystal_notebook_utilities/endf2ace.py" = [
-    "E501", "W", "I", "B", "UP", "C4", "SIM", "PIE", "RUF", "PERF", "PTH",
-    "RET", "ARG", "PL" ]

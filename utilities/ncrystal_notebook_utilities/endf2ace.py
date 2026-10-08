@@ -13,37 +13,39 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
                             emax=None, zaids=None, njoy_exec='njoy',
                             tol=0.001, nbin=32, iwt=2, nbint=200):
     """ Converts an ENDF-6 formatted [1] thermal scattering library (TSL)
-    into ACE format [2] for Monte Carlo codes using NJOY2016 [3]. EndfParserPy [4]
-    is used to read parameters from the ENDF-6 file that are needed to configure
-    the NJOY input, and to generate a dummy ENDF-6 file that is needed to run THERMR.
-    The dummy ENDF-6 file is given the arbitrary values MAT=10 and AWR=1.0 but they
-    are not used by Monte Carlo codes. The energy grid of this dummy file is set to the
-    energy grid hard coded into THERMR for version NJOY2016.79, to avoid energy 
-    interpolation.
+    into ACE format [2] for Monte Carlo codes using NJOY2016 [3]. EndfParserPy
+    [4] is used to read parameters from the ENDF-6 file that are needed to
+    configure the NJOY input, and to generate a dummy ENDF-6 file that is
+    needed to run THERMR. The dummy ENDF-6 file is given the arbitrary values
+    MAT=10 and AWR=1.0 but they are not used by Monte Carlo codes. The energy
+    grid of this dummy file is set to the energy grid hard coded into THERMR
+    for version NJOY2016.79, to avoid energy interpolation.
 
     Parameters
     ----------
     endf_tsl: str
         ENDF-6 file to convert
-    
+
     material_name: str
         Name of the material (only used in description strings)
-    
+
     ace_name: str
         Thermal ACE name for ACER. Truncated to 6 characters.
-    
+
     temp: float
-        Temperature to process. If none is given, the first temperature in the 
+        Temperature to process. If none is given, the first temperature in the
         ENDF-6 TSL file is used.
 
     emax: float
-        Maximum energy for the ACE file. If none is given, the emax value in the
-        ENDF-6 TSL file is used. If that value is not available, the default is 5 eV.
+        Maximum energy for the ACE file. If none is given, the emax value in
+        the ENDF-6 TSL file is used. If that value is not available, the
+        default is 5 eV.
 
     zaids: str
-        ZAIDs (Z*1000+A) values of the nuclides that will be associated with this
-        thermal ACE file. If none is given, the values from MF=7/MT=451 are used.
-        If that is not available, the natural isotopes of the element are used.
+        ZAIDs (Z*1000+A) values of the nuclides that will be associated with
+        this thermal ACE file. If none is given, the values from MF=7/MT=451
+        are used. If that is not available, the natural isotopes of the element
+        are used.
 
     njoy_exec: str
         Executable for NJOY2016
@@ -64,13 +66,13 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
     nbint: int
         Number of outgoing energy points used in ACER (default=200)
 
-    
+
     [1] https://www.nndc.bnl.gov/endfdocs/ENDF-102-2023.pdf
     [2] https://github.com/NuclearData/ACEFormat/blob/master/ACEFormat.pdf
-    [3] https://github.com/njoy/NJOY2016 
+    [3] https://github.com/njoy/NJOY2016
     [4] https://endf-parserpy.readthedocs.io/en/latest/
     """
-    import os
+    import contextlib
     import pathlib
     import shutil
     import subprocess
@@ -198,11 +200,13 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         p['DDATE'] = ''.ljust(10)
         p['RDATE'] = ''.ljust(10)
         p['ENDATE'] = ''.ljust(8)
-        p['HSUB/1'] = ('----DUMMYLIB'.ljust(22) + f'MATERIAL {p["MAT"]}').ljust(66)
+        p['HSUB/1'] = ( '----DUMMYLIB'.ljust(22)
+                        + f'MATERIAL {p["MAT"]}' ).ljust(66)
         p['HSUB/2'] = '-----INCIDENT NEUTRON DATA'.ljust(66)
         p['HSUB/3'] = '------ENDF-6 FORMAT'.ljust(66)
         p['DESCRIPTION/1'] = 'Dummy neutron library.'.ljust(66)
-        p['DESCRIPTION/2'] = 'This library does not represent any real isotope.'.ljust(66)
+        p['DESCRIPTION/2'] = ( 'This library does not represent any real'
+                               ' isotope.' ).ljust(66)
         p['MFx/1'] = 1
         p['MTx/1'] = 451
         p['NCx/1'] = 5
@@ -217,7 +221,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         endf_dict['3/1/LR'] = 0
         endf_dict['3/1/xstable/NBT'] = [8]
         endf_dict['3/1/xstable/INT'] = [2]
-        endf_dict['3/1/xstable/E'] = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0, 100]
+        endf_dict['3/1/xstable/E'] = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0,
+                                      100]
         endf_dict['3/1/xstable/xs'] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         endf_dict['3/2/MAT'] = endf_dict['1/451/MAT']
         endf_dict['3/2/AWR'] = endf_dict['1/451/AWR']
@@ -227,7 +232,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         endf_dict['3/2/LR'] = 0
         endf_dict['3/2/xstable/NBT'] = [8]
         endf_dict['3/2/xstable/INT'] = [2]
-        endf_dict['3/2/xstable/E'] = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0, 100]
+        endf_dict['3/2/xstable/E'] = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 10.0,
+                                      100]
         endf_dict['3/2/xstable/xs'] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
         endf_parserpy.update_directory(endf_dict, parser)
         parser.writefile(filename, endf_dict, overwrite=True)
@@ -235,10 +241,8 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
     def delete_tapes():
         for fn in ['tape20', 'tape22', 'tape23', 'tape31',
                    'tape41', 'tape51', 'tape61', 'output']:
-            try:
-                os.remove(fn)
-            except OSError:
-                pass
+            with contextlib.suppress(OSError):
+                pathlib.Path(fn).unlink()
 
     parser = endf_parserpy.EndfParserPy(print_cache_info=False, cache_dir=False)
     endf_dic = parser.parsefile(endf_tsl)
@@ -254,7 +258,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         temp = temperatures[0]
     else:
         assert temp in temperatures, f'{temp} K not found in ENDF-6 file'
-    has_elastic = (2 in endf_dic[7].keys())
+    has_elastic = (2 in endf_dic[7])
     za = int(endf_dic[1][451]['ZA'])
     endf_tsl_mat = endf_dic[1][451]['MAT']
     natom = int(endf_dic[7][4]['B'][6])
@@ -268,9 +272,9 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         elas_mat = 238
         lthr = endf_dic[7][2]['LTHR']
         ielas = lthr - 1
-        icoh = 1 if lthr == 1 or lthr == 3 else 0
+        icoh = 1 if lthr in (1, 3) else 0
     if zaids is None:
-        if (451 in endf_dic[7].keys()):
+        if (451 in endf_dic[7]):
             # If MF=7/MT=451 is present, use the isotopic decomposition
             isotope_list = [ str(int(v2))
                              for k1,v1 in endf_dic[7][451]['ZAI'].items()
@@ -278,9 +282,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
             zaids = ' '.join(isotope_list)
         else:
             # If not, use the decomposition in natural isotopes
-            zaids = ( natural_isotopes[za]
-                      if za in natural_isotopes
-                      else f"{za}" )
+            zaids = natural_isotopes.get(za, f"{za}")
     if emax is None:
         emax = endf_dic[1][451]['EMAX']
         if emax <= 0:
@@ -299,25 +301,25 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
 'Dummy ENDF-6 tape with THERMR energy grid' /
 10 0 118 /
 {tol} {temp} /
- 1.e-5 1.78e-5 2.5e-5 3.5e-5 5.0e-5 7.0e-5 1.e-4  
- 1.26e-4 1.6e-4 2.0e-4 0.000253  0.000297  0.000350   
- 0.00042  0.000506  0.000615  0.00075  0.00087   
- 0.001012  0.00123  0.0015  0.0018  0.00203  0.002277   
- 0.0026  0.003  0.0035  0.004048  0.0045  0.005   
- 0.0056  0.006325  0.0072  0.0081  0.009108  0.01   
- 0.01063  0.0115  0.012397  0.0133  0.01417  0.015   
- 0.016192  0.0182  0.0199  0.020493  0.0215  0.0228   
- 0.0253  0.028  0.030613  0.0338  0.0365  0.0395   
- 0.042757  0.0465  0.050  0.056925  0.0625  0.069   
- 0.075  0.081972  0.09  0.096  0.1035  0.111573   
- 0.120  0.128  0.1355  0.145728  0.160  0.172   
- 0.184437  0.20  0.2277  0.2510392  0.2705304   
- 0.2907501  0.3011332  0.3206421  0.3576813  0.39   
- 0.4170351  0.45  0.5032575  0.56  0.625   
- 0.70  0.78  0.86  0.95  1.05  1.16  1.28   
- 1.42  1.55  1.70  1.855  2.02  2.18   
- 2.36  2.59  2.855  3.12  3.42  3.75   
- 4.07  4.46  4.90  5.35  5.85  6.40   
+ 1.e-5 1.78e-5 2.5e-5 3.5e-5 5.0e-5 7.0e-5 1.e-4
+ 1.26e-4 1.6e-4 2.0e-4 0.000253  0.000297  0.000350
+ 0.00042  0.000506  0.000615  0.00075  0.00087
+ 0.001012  0.00123  0.0015  0.0018  0.00203  0.002277
+ 0.0026  0.003  0.0035  0.004048  0.0045  0.005
+ 0.0056  0.006325  0.0072  0.0081  0.009108  0.01
+ 0.01063  0.0115  0.012397  0.0133  0.01417  0.015
+ 0.016192  0.0182  0.0199  0.020493  0.0215  0.0228
+ 0.0253  0.028  0.030613  0.0338  0.0365  0.0395
+ 0.042757  0.0465  0.050  0.056925  0.0625  0.069
+ 0.075  0.081972  0.09  0.096  0.1035  0.111573
+ 0.120  0.128  0.1355  0.145728  0.160  0.172
+ 0.184437  0.20  0.2277  0.2510392  0.2705304
+ 0.2907501  0.3011332  0.3206421  0.3576813  0.39
+ 0.4170351  0.45  0.5032575  0.56  0.625
+ 0.70  0.78  0.86  0.95  1.05  1.16  1.28
+ 1.42  1.55  1.70  1.855  2.02  2.18
+ 2.36  2.59  2.855  3.12  3.42  3.75
+ 4.07  4.46  4.90  5.35  5.85  6.40
  7.00  7.65  8.40  9.15  9.85  10.00 /
  0 /
 thermr
@@ -338,12 +340,12 @@ stop
     create_dummy_endf_file('tape20')
     shutil.copyfile(endf_tsl, 'tape31')
     result = subprocess.run([njoy_exec], input=txt, capture_output=True,
-                            text=True)
+                            text=True, check=False)
     assert result.stdout.find('error')==-1, f'Error in NJOY:\n{result.stdout}'
     assert result.returncode == 0, ( 'NJOY not executed correctly\n'
                                     f'{result.stderr}')
-    assert ( os.path.isfile('tape51')
-             and os.path.isfile('tape61')), ('NJOY could not produce'
+    assert ( pathlib.Path('tape51').is_file()
+             and pathlib.Path('tape61').is_file()), ('NJOY could not produce'
                                              ' the ACE file')
 
     shutil.move('tape51', ace_filename)
