@@ -20,8 +20,8 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-python@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.12'
     - name: Quick checks of all notebooks
@@ -51,8 +51,8 @@ jobs:
       run:
         shell: bash
     steps:
-    - uses: actions/checkout@v7
-    - uses: actions/setup-python@v7
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: ${{ matrix.python }}
     #Notebooks marked as slow are run by the tests_slow workflow instead:
@@ -60,7 +60,7 @@ jobs:
       run: python devel/bin/ncnotebookdevtool test --select pip --env venv --skip-slow -j 3 --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: failed-pip-${{ matrix.os }}-${{ matrix.python }}
         path: |
@@ -79,14 +79,14 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-    - uses: actions/checkout@v7
-    - uses: conda-incubator/setup-miniconda@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: conda-incubator/setup-miniconda@be893c923ea9cf1cf7cd510fbdde27c7e18cbdcb # v4.1.0
       with:
         miniforge-version: latest
         channels: conda-forge
         conda-remove-defaults: "true"
     - name: Cache data downloaded by notebooks
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-v1-${{ runner.os }}
@@ -97,7 +97,7 @@ jobs:
       run: python devel/bin/ncnotebookdevtool test --select conda --env conda --skip-slow -j 2 --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: failed-conda-${{ matrix.os }}
         path: |

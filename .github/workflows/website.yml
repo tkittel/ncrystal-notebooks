@@ -28,14 +28,14 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-    - uses: actions/checkout@v7
-    - uses: conda-incubator/setup-miniconda@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: conda-incubator/setup-miniconda@be893c923ea9cf1cf7cd510fbdde27c7e18cbdcb # v4.1.0
       with:
         miniforge-version: latest
         channels: conda-forge
         conda-remove-defaults: "true"
     - name: Cache data downloaded by notebooks
-      uses: actions/cache@v6
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-v1-${{ runner.os }}
@@ -49,11 +49,11 @@ jobs:
       run: ./devel/bin/ncnotebookdevtool site -j 3 --skip-slow -o "${{ runner.temp }}/site" --workdir "${{ runner.temp }}/work"
     - name: Upload logs of failed notebooks
       if: failure()
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: failed-website
         path: ${{ runner.temp }}/work/*.log
-    - uses: actions/upload-pages-artifact@v5
+    - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
       with:
         path: ${{ runner.temp }}/site/html
     - name: Push Google Colab versions of the notebooks to the googlecolab branch
@@ -79,4 +79,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
     - id: deployment
-      uses: actions/deploy-pages@v5
+      uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

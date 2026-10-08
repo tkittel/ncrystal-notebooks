@@ -3,6 +3,12 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
+# The actions used in the workflows are pinned to the full commit SHAs of
+# their releases, with the version as a comment (e.g. "uses:
+# actions/checkout@<sha> # v7.0.1"), so a moved or hijacked tag can not change
+# them. Dependabot updates both the SHA and the comment. Please pin new actions
+# in the same way.
+
 version: 2
 updates:
   - package-ecosystem: "github-actions" # See documentation for possible values
