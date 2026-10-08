@@ -42,7 +42,7 @@ jobs:
         docker image inspect "$COLAB_IMAGE" \
           --format 'Size: {{.Size}} bytes, created {{.Created}}'
     - name: Cache data downloaded by notebooks
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-colab-v1
