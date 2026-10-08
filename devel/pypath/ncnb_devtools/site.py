@@ -60,6 +60,9 @@ html_theme_options = {{
     'show_toc_level' : 2,
     #No table of contents to the right of the front page:
     'secondary_sidebar_items' : {{ '**' : [ 'page-toc' ], 'index' : [] }},
+    #(The search field is in the sidebar, so the header should not have
+    #another one, which it otherwise has by default:)
+    'navbar_persistent' : [],
     'logo' : {{ 'image_light' : '_static/ncrystal-logo.svg',
                'image_dark' : '_static/ncrystal-logo-dark.svg',
                'alt_text' : {project!r} }},
@@ -74,9 +77,10 @@ suppress_warnings = [ 'myst.header', 'mystnb.unknown_mime_type',
 
 '''
 
-#Compact layout of the lists of notebooks on the front page, and text outputs
-#of cells in scrollable boxes, with a background (in light and dark mode)
-#different from both the page and the code cells:
+#Compact layout of the lists of notebooks on the front page, text outputs of
+#cells in scrollable boxes, with a background (in light and dark mode)
+#different from both the page and the code cells, and the logo always visible
+#at the top of the sidebar (which the theme scrolls to show the current page):
 CSS = '''
 :root { --ncnb-output-bg: #fbf8ec; --ncnb-output-bar: #d9c98f; }
 html[data-theme=dark] { --ncnb-output-bg: #2a2619; --ncnb-output-bar: #6b5f35; }
@@ -95,6 +99,11 @@ p.ncnb-section-desc { margin: 0 0 0.25em 0 !important; font-size: 0.9em;
                       opacity: 0.8; }
 ul.ncnb-list { margin: 0 !important; padding-left: 1.3em; }
 ul.ncnb-list li { margin: 0.05em 0 !important; }
+.bd-sidebar-primary .sidebar-primary-item:has(> .navbar-brand.logo) {
+  position: sticky; top: -1rem; z-index: 2;
+  margin-top: -1rem; padding: 1rem 0 0.5rem 0;
+  background: var(--pst-color-background);
+  box-shadow: 0 6px 6px -6px var(--pst-color-shadow); }
 '''
 
 #Line in developers.md replaced by tables of what notebook_settings.toml
