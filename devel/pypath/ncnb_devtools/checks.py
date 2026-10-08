@@ -64,8 +64,19 @@ def check_notebook( nb, cfg ):
 def heading_problems( nb ):
     """Problems with the section headings and their keys (see headings.py),
     and with links to sections."""
-    from .headings import find_headings, section_links, KEY_RE, KEY_RULE
+    from .headings import ( find_headings, section_links, KEY_RE, KEY_RULE,
+                            INTRO_HEADING )
     problems = []
+    cells = nb.nb['cells']
+    intro = source_str(cells[1]).strip() if len(cells) > 1 else ''
+    if ( len(cells) < 2 or cells[1]['cell_type'] != 'markdown'
+         or intro.split('\n')[0].rstrip() != INTRO_HEADING ):
+        problems.append('the cell after the settings cell must be a markdown'
+                        f' cell starting with "{INTRO_HEADING}", followed by'
+                        ' an introduction to the notebook')
+    elif not intro[len(INTRO_HEADING):].strip():
+        problems.append(f'no introduction to the notebook after'
+                        f' "{INTRO_HEADING}" in the second cell')
     keys = {}
     links = []
     for i, c in enumerate(nb.nb['cells']):

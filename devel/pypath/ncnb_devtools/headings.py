@@ -18,6 +18,10 @@ KEY_RE = re.compile( r'^[a-z][a-z0-9]{0,9}$' )
 KEY_RULE = ( 'lowercase letters (a-z) and digits, starting with a letter, at'
              ' most 10 characters' )
 
+#The cell after the settings cell must start with this heading, followed by an
+#introduction to the notebook:
+INTRO_HEADING = '## Introduction [intro]'
+
 _heading_re = re.compile( r'^( {0,3})(#{1,6})[ \t]+(.*?)[ \t]*$' )
 _trailing_key_re = re.compile( r'^(.*?)[ \t]+\[([^\[\]]*)\]$' )
 _fence_re = re.compile( r'^ {0,3}(```|~~~)' )

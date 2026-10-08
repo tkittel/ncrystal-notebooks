@@ -45,6 +45,9 @@ def make_nb( cells ):
                          for ct, src in cells ],
              'metadata' : {}, 'nbformat' : 4, 'nbformat_minor' : 4 }
 
+#The required cell after the settings cell:
+INTRO = '## Introduction [intro]\nSome text.'
+
 SETTINGS = ( '# NCrystal notebook settings\n# title: {title}\n'
              '# menutitle: Menu {title}\n'
              '# shortkey: {key}\n# section: basics\n# requires: plot' )
@@ -59,7 +62,7 @@ def fakerepo( tmp_path, monkeypatch ):
     for key in ('one','two'):
         nb = make_nb( [ ('code', SETTINGS.format( title = f'Notebook {key}',
                                                   key = key ) ),
-                        ('markdown', 'Some text.'),
+                        ('markdown', INTRO),
                         ('code', 'x = NC.load("Al_sg225.ncmat")') ] )
         ( nbdir / f'{key}.ipynb' ).write_text( json.dumps(nb) )
     monkeypatch.setenv( 'NCNOTEBOOKDEVTOOL_REPOROOT', str(tmp_path) )

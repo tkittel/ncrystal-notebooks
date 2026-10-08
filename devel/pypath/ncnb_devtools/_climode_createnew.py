@@ -181,12 +181,12 @@ def createnew( args ):
     except SettingsError as e:
         raise SystemExit(f'ERROR: {e}')
     nb = { 'cells' : [ make_cell( 'code', settings_src ),
-                       make_cell( 'markdown', 'Describe here what this'
-                                  ' notebook is about.' ),
-                       make_cell( 'markdown', '## A first section [first]\n\n'
-                                  'Section headings end with a short key in'
-                                  ' brackets (see "Section headings" in the'
-                                  ' developer documentation).' ),
+                       make_cell( 'markdown', '## Introduction [intro]\n\n'
+                                  'Describe here what this notebook is about.'
+                                  ' (Section headings, like the one above, end'
+                                  ' with a short key in brackets: see "Section'
+                                  ' headings" in the developer'
+                                  ' documentation.)' ),
                        make_cell( 'code', '' ) ],
            'metadata' : {}, 'nbformat' : 4, 'nbformat_minor' : 5 }
     path.parent.mkdir( parents = True, exist_ok = True )

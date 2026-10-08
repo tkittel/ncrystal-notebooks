@@ -143,6 +143,11 @@ subsections `###`), which must end with a key in brackets:
 ### Changing the temperature [temp]
 ```
 
+Every notebook starts with an introduction: the cell after the settings cell
+must be a markdown cell starting with the heading `## Introduction [intro]`,
+followed by a description of what the notebook is about (new notebooks created
+with `createnew` already have it).
+
 Keys consist of lowercase letters (a-z) and digits, start with a letter, have
 at most 10 characters, and must be unique within the notebook. Readers do not
 see them: on the website and in the notebooks for download and for Google
