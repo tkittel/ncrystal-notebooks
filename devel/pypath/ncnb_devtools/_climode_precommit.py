@@ -1,5 +1,6 @@
 def short_description():
-    return 'Bring notebooks into canonical form and check them (run before commits)'
+    return ( 'Bring notebooks into canonical form and check them (run before'
+             ' commits)' )
 
 def main( parser ):
     parser.init( short_description() + """. This removes outputs and
@@ -10,18 +11,22 @@ def main( parser ):
                          help = """Notebooks (shortkeys or paths; default:
                          all).""" )
     args = parser.parse_args()
-    from .config import load_config
-    from .nbsettings import find_notebooks, select_notebooks
-    from .nbsettings import split_settings_source
-    from .nbfile import canonical_text, source_str, split_source
     from .checks import check_all, report
+    from .config import load_config
+    from .nbfile import canonical_text, source_str, split_source
+    from .nbsettings import (
+        find_notebooks,
+        select_notebooks,
+        split_settings_source,
+    )
     for nb in select_notebooks( args.NOTEBOOK, find_notebooks() ):
         if nb.nb is None:
             continue
         cells = nb.nb['cells']
         if cells and cells[0]['cell_type'] == 'code':
             #Remove generated code from the settings cell:
-            settings_src, generated = split_settings_source(source_str(cells[0]))
+            settings_src, generated = split_settings_source(
+                source_str(cells[0]) )
             if generated:
                 cells[0]['source'] = split_source(settings_src)
         text = canonical_text(nb.nb)
@@ -30,7 +35,7 @@ def main( parser ):
             print(f'Updated {nb.relpath}')
     allnbs = find_notebooks()
     notebooks = select_notebooks( args.NOTEBOOK, allnbs )
-    selected = set( nb.relpath for nb in notebooks )
+    selected = { nb.relpath for nb in notebooks }
     problems = [ ( r, p ) for r, p in check_all( allnbs, load_config() )
                  if r in selected ]
     if not report( problems ):

@@ -25,7 +25,7 @@ def main( parser ):
             print('    (no notebooks)')
         for nb in nbs:
             s = nb.settings
-            extra = [ r for r in s.requires ] + [ f'plugin:{p}'
+            extra = list(s.requires) + [ f'plugin:{p}'
                                                  for p in s.plugins ]
             if s.slow:
                 extra.append('slow')

@@ -67,7 +67,7 @@ def _run( cmd, *, env = None, log = None, cwd = None ):
     """Run a command, failing with the output if it fails."""
     try:
         p = subprocess.run( [str(e) for e in cmd], env = env, cwd = cwd,
-                            stdout = subprocess.PIPE,
+                            check = False, stdout = subprocess.PIPE,
                             stderr = subprocess.STDOUT, text = True,
                             encoding = 'utf-8', errors = 'replace',
                             timeout = COMMAND_TIME_LIMIT )
@@ -75,13 +75,14 @@ def _run( cmd, *, env = None, log = None, cwd = None ):
         out = e.stdout or ''
         out = out.decode('utf-8','replace') if isinstance(out,bytes) else out
         if log is not None:
-            with open(log,'a',encoding='utf-8') as fh:
+            with pathlib.Path(log).open('a',encoding='utf-8') as fh:
                 fh.write('$> ' + ' '.join(str(e) for e in cmd) + '\n' + out)
         raise EnvError( f'Command took more than {COMMAND_TIME_LIMIT} seconds'
                         ' (perhaps something was compiled from source): '
-                        + ' '.join(str(e) for e in cmd) + '\n' + out[-3000:] )
+                        + ' '.join(str(e) for e in cmd) + '\n' + out[-3000:]
+                       ) from None
     if log is not None:
-        with open(log,'a',encoding='utf-8') as fh:
+        with pathlib.Path(log).open('a',encoding='utf-8') as fh:
             fh.write('$> ' + ' '.join(str(e) for e in cmd) + '\n')
             fh.write(p.stdout)
     if p.returncode != 0:
@@ -185,7 +186,7 @@ def venv_env( pip_packages, *, python = None, fresh = False, log = None ):
         _run( [ python, '-m', 'venv', d ], log = log )
         env.run( [ env.python, '-m', 'pip', 'install', '-q', '--upgrade',
                    'pip' ], log = log )
-        env.run( [ env.python, '-m', 'pip', 'install', '-q' ] + pkgs,
+        env.run( [env.python, '-m', 'pip', 'install', '-q', *pkgs],
                  log = log )
         ( d / _complete_marker ).write_text( ' '.join(pkgs)+'\n',
                                              encoding = 'utf-8' )
@@ -214,10 +215,10 @@ def conda_env( conda_packages, pip_packages, *, fresh = False, log = None ):
         cenv['CONDA_PKGS_DIRS'] = str(pkgsdir)
         #Only conda-forge (like "nodefaults" plus "conda-forge" in an
         #environment file):
-        _run( [ tool, 'create', '-y', '-p', d, '--override-channels',
-                '-c', 'conda-forge' ] + cpkgs, env = cenv, log = log )
+        _run( [ tool, 'create', '-y', '-p', d, '--override-channels', '-c',
+                'conda-forge', *cpkgs ], env = cenv, log = log )
         if ppkgs:
-            env.run( [ env.python, '-m', 'pip', 'install', '-q' ] + ppkgs,
+            env.run( [env.python, '-m', 'pip', 'install', '-q', *ppkgs],
                      log = log )
         ( d / _complete_marker ).write_text( ' '.join(cpkgs+ppkgs)+'\n',
                                              encoding = 'utf-8' )
@@ -253,8 +254,8 @@ def overlay_env( base, path, *, log = None ):
     python, bindirs = _venv_layout(path)
     ov = Env( python, bindirs + base.bindirs,
               f'{base.description} + overlay', conda_prefix = base.conda_prefix,
-              jupyter_paths = ( [ path / 'share' / 'jupyter' ]
-                                + base.jupyter_paths ),
+              jupyter_paths = [ path / 'share' / 'jupyter',
+                                *base.jupyter_paths ],
               activated = base.activated )
     #Make the packages of the base environment available (after those of the
     #overlay), including processing of their .pth files:
@@ -299,7 +300,7 @@ def build_ncrystal_wheels( srcdir, wheeldir, *, log = None ):
     wheels = sorted(wheeldir.glob('*.whl'))
     if len(wheels) != 2:
         raise EnvError(f'Expected 2 NCrystal wheels, got: {wheels}')
-    versions = set( wheel_version(w) for w in wheels )
+    versions = { wheel_version(w) for w in wheels }
     if len(versions) != 1:
         raise EnvError(f'Inconsistent versions of NCrystal wheels: {wheels}')
     return wheels
@@ -337,8 +338,9 @@ class EnvRequest:
             return [ p for p in pkgs if p not in local_names ]
         #With NCrystal from a local repository, plugins must be built against
         #it, so they are installed in the overlay:
-        self.overlay_plugins = list(reqs.plugins) if ( ncrystal_src or
-                                                      kind == 'current' ) else []
+        self.overlay_plugins = ( list(reqs.plugins)
+                                 if ( ncrystal_src or kind == 'current' )
+                                 else [] )
         base_plugins = [] if self.overlay_plugins else list(reqs.plugins)
         if kind == 'venv':
             assert not reqs.needs_conda
@@ -367,7 +369,7 @@ def create_base_env( req, *, python = None, fresh = False, log = None ):
     return current_env()
 
 def create_overlay( req, base, path, *, ncrystal_wheels = None,
-                    ncrystal_src = None, log = None ):
+                    log = None ):
     """Create the overlay for the request on top of the base environment."""
     print(f'Creating overlay environment {path.name} on top of'
           f' {base.description}', flush = True)

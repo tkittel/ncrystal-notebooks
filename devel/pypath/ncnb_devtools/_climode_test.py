@@ -46,12 +46,19 @@ def main( parser ):
 
 def run_tests( args ):
     import sys
+
+    from .batch import (
+        cleanup_workdir,
+        limits_description,
+        make_workdir,
+        print_summary,
+        quick_checks,
+        run_batch,
+    )
     from .config import load_config
-    from .nbsettings import select_notebooks
+    from .envsetup import conda_platform, env_kind, in_colab_image
     from .expand import Requirements
-    from .envsetup import env_kind, conda_platform, in_colab_image
-    from .batch import ( limits_description, quick_checks, make_workdir, run_batch, print_summary,
-                         cleanup_workdir )
+    from .nbsettings import select_notebooks
     cfg = load_config()
     if args.colab and not args.write_selected and not in_colab_image():
         raise SystemExit('ERROR: --colab is only possible in Google\'s Colab'
@@ -118,7 +125,8 @@ def run_tests( args ):
     if args.write_selected:
         import pathlib
         pathlib.Path(args.write_selected).write_text(
-            ''.join( f'{nb.shortkey}\n' for nb, _ in jobs ), encoding = 'utf-8' )
+            ''.join( f'{nb.shortkey}\n' for nb, _ in jobs ),
+            encoding = 'utf-8' )
         print(f'Wrote the {len(jobs)} selected notebooks to'
               f' {args.write_selected}')
         return

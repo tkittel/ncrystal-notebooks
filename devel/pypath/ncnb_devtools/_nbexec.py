@@ -9,15 +9,16 @@ Usage: python _nbexec.py INPUT OUTPUT TIMELIMIT
 import sys
 import time
 
+
 def patch_jupyter_client():
     """Work around messages from the kernel which nbclient (or rather the
     zmq-based channels of jupyter_client) sometimes only receives when its wait
     for them times out. This happens in particular for notebooks with
     ipywidgets.interact, which then hang until the cell timeout, while the
     kernel sent its reply right away. Waiting in short slices avoids this."""
-    from queue import Empty
     import importlib
     import inspect
+    from queue import Empty
     #The asynchronous channel class used by nbclient, in jupyter_client 8 and
     #later, 7 (e.g. in Google's Colab runtime image), and 6:
     candidates = [ ('jupyter_client.channels','AsyncZMQSocketChannel'),
@@ -60,7 +61,7 @@ def main():
     nbformat.validate(nb)
     t0 = time.time()
     deadline = t0 + limit
-    def remaining_time( cell ):
+    def remaining_time( _cell ):
         #Each cell can use the time left until the deadline:
         return max( 1, int( deadline - time.time() ) + 1 )
     current = {}
@@ -96,9 +97,9 @@ def main():
         #Check that the notebook can be converted to HTML (cf. ncrystal#266):
         from nbconvert import HTMLExporter
         html, _ = HTMLExporter().from_notebook_node(nb)
-        with open( outp.rsplit('.',1)[0] + '.html', 'w',
-                   encoding = 'utf-8' ) as fh:
-            fh.write(html)
+        import pathlib
+        pathlib.Path( outp.rsplit('.',1)[0] + '.html' ).write_text(
+            html, encoding = 'utf-8' )
     return 0 if ok else 1
 
 if __name__ == '__main__':

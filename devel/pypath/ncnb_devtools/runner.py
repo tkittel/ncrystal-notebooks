@@ -10,6 +10,7 @@ import time
 from .dirs import codcache_dir
 from .nbfile import dumps
 
+
 def write_kernelspec( env, datadir ):
     """Make the "python3" kernel use the Python of the environment (taking
     precedence over any other python3 kernel found by Jupyter)."""
@@ -60,6 +61,7 @@ def run_notebook( env, nbfile, limit, logfile ):
         p = subprocess.run( [ str(env.python), str(script), nbfile.name,
                               output.name, str(limit) ],
                             cwd = rundir, env = environ, text = True,
+                            check = False,
                             encoding = 'utf-8', errors = 'replace',
                             stdout = subprocess.PIPE,
                             stderr = subprocess.STDOUT,

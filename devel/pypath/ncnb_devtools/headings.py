@@ -87,6 +87,6 @@ def replace_keys_with_anchors( source, target, shortkey ):
         anchor = ( [ f'{{#{aid}}}' ] if target == 'site'
                    else [ f'<a id="{aid}"></a>', '' ] )
         if h.lineno > 0 and lines[h.lineno-1].strip():
-            anchor = [''] + anchor
-        lines[h.lineno:h.lineno+1] = anchor + [ f'{hashes} {h.text}' ]
+            anchor = ['', *anchor]
+        lines[h.lineno:h.lineno+1] = [*anchor, f'{hashes} {h.text}']
     return '\n'.join(lines)

@@ -8,8 +8,8 @@ def download_and_prepare_nndc_data():
     directory, the extracted library is kept there and reused (hardlinked if
     possible) on later calls, avoiding repeated downloads (used when testing
     the notebooks)."""
-    import pathlib
     import os
+    import pathlib
     print( 'Getting NNDX data for OpenMC from source:')
     print(f'  {_nndc_source}')
     openmc_xsfile = pathlib.Path('./nndc_hdf5/cross_sections.xml')
@@ -21,17 +21,17 @@ def download_and_prepare_nndc_data():
         print(f"... Using cached copy in {cached}")
         _link_tree( cached, openmc_xsfile.parent )
     else:
-        _download_and_extract( pathlib.Path('.') )
+        _download_and_extract( pathlib.Path() )
     if not openmc_xsfile.is_file():
         raise RuntimeError(f"Did not find expected file: {openmc_xsfile}")
     print(f"OpenMC cross section file prepared in {openmc_xsfile}")
     return openmc_xsfile
 
 def _download_and_extract( destdir ):
-    from .download import extract_archive, download_file
+    from .download import download_file, extract_archive
     print("... Downloading (this might take a minute)...")
     f = download_file( _nndc_source,
-                       tgt_path = destdir / _nndc_source.split('/')[-1],
+                       tgt_path = destdir / _nndc_source.rsplit('/',1)[-1],
                        skip_if_exists = True, quiet = True )
     print("... Extracting (this might take a minute)...")
     extract_archive( f, destdir, quiet = True )
@@ -40,7 +40,6 @@ def _download_and_extract( destdir ):
 def _cached_nndc_data( cachedir ):
     #Extract into a temporary directory which is then renamed, so concurrent
     #processes never see an incomplete cache:
-    import os
     import pathlib
     import shutil
     import tempfile
@@ -52,7 +51,7 @@ def _cached_nndc_data( cachedir ):
             f = _download_and_extract( tmpdir )
             f.unlink()
             try:
-                os.rename( tmpdir / 'nndc_hdf5', tgt )
+                ( tmpdir / 'nndc_hdf5' ).rename( tgt )
             except OSError:
                 if not ( tgt / 'cross_sections.xml' ).is_file():
                     raise
@@ -64,15 +63,17 @@ def _link_tree( src, dest ):
     #Hardlink files (copying if not possible). The cross_sections.xml file is
     #always copied, since notebooks might modify it in place:
     import os
+    import pathlib
     import shutil
-    for root, dirs, files in os.walk(src):
+    for root, _dirs, files in os.walk(src):
         d = dest / os.path.relpath( root, src )
         d.mkdir( parents = True, exist_ok = True )
         for fn in files:
+            f = pathlib.Path(root) / fn
             if fn.endswith('.xml'):
-                shutil.copy2( os.path.join(root,fn), d / fn )
+                shutil.copy2( f, d / fn )
                 continue
             try:
-                os.link( os.path.join(root,fn), d / fn )
+                os.link( f, d / fn )
             except OSError:
-                shutil.copy2( os.path.join(root,fn), d / fn )
+                shutil.copy2( f, d / fn )

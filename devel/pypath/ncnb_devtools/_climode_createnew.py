@@ -3,7 +3,8 @@ def short_description():
 
 def main( parser ):
     parser.init( short_description() + """. Asks for the title, menu title,
-    shortkey, section, requirements and plugins of the new notebook (unless given with
+    shortkey, section, requirements and plugins of the new notebook (unless
+    given with
     the options below), and creates it with its settings cell, ready for
     editing with the launch mode.""" )
     parser.add_argument( '--title', help = 'Title of the notebook.' )
@@ -47,7 +48,7 @@ class _Asker:
             try:
                 v = input(f'{prompt}{dflt}: ').strip()
             except (EOFError,KeyboardInterrupt):
-                raise SystemExit('\nAborted')
+                raise SystemExit('\nAborted') from None
             if not v and default:
                 v = default
             err = check(v)
@@ -75,17 +76,24 @@ def _parse_list( value ):
 
 def createnew( args ):
     import pathlib
+
     from .config import load_config
     from .dirs import reporoot
-    from .nbsettings import find_notebooks, NotebookSettings, SettingsError
-    from .nbsettings import HEADER, _shortkey_re, MAX_MENUTITLE_LENGTH
     from .nbfile import make_cell, write
+    from .nbsettings import (
+        HEADER,
+        MAX_MENUTITLE_LENGTH,
+        NotebookSettings,
+        SettingsError,
+        _shortkey_re,
+        find_notebooks,
+    )
     cfg = load_config()
     notebooks = find_notebooks()
-    taken_keys = set( nb.shortkey for nb in notebooks if nb.shortkey )
-    taken_titles = set( nb.settings.title for nb in notebooks if nb.settings )
-    taken_menutitles = set( nb.settings.menutitle for nb in notebooks
-                            if nb.settings )
+    taken_keys = { nb.shortkey for nb in notebooks if nb.shortkey }
+    taken_titles = { nb.settings.title for nb in notebooks if nb.settings }
+    taken_menutitles = { nb.settings.menutitle for nb in notebooks
+                            if nb.settings }
     ask = _Asker()
 
     def check_title( v ):
@@ -93,15 +101,18 @@ def createnew( args ):
             return 'A title is needed'
         if v in taken_titles:
             return 'This title is already used by another notebook'
+        return None
     title = ask.get( args.title, '--title', 'Title', check_title )
 
     def check_menutitle( v ):
         if not v:
             return 'A menu title is needed'
         if len(v) > MAX_MENUTITLE_LENGTH:
-            return f'The menu title must be at most {MAX_MENUTITLE_LENGTH} characters'
+            return ( 'The menu title must be at most'
+                     f' {MAX_MENUTITLE_LENGTH} characters' )
         if v in taken_menutitles:
             return 'This menu title is already used by another notebook'
+        return None
     menutitle = ask.get( args.menutitle, '--menutitle',
                          'Short title for the menu of the website',
                          check_menutitle,
@@ -114,6 +125,7 @@ def createnew( args ):
                     ' (it is used in URLs, so it should never change)')
         if v in taken_keys:
             return 'This shortkey is already used by another notebook'
+        return None
     shortkey = ask.get( args.shortkey, '--shortkey',
                         'Shortkey (for URLs etc.)', check_shortkey,
                         default = _suggest_shortkey( title, taken_keys ) )
@@ -126,6 +138,7 @@ def createnew( args ):
         if not cfg.section(v):
             return ( f'Unknown section "{v}" (sections: '
                      + ', '.join( s.key for s in cfg.sections ) + ')' )
+        return None
     section = ask.get( args.section, '--section', 'Section', check_section,
                        default = cfg.sections[0].key )
 
@@ -139,6 +152,7 @@ def createnew( args ):
         bad = [ r for r in _parse_list(v) if r not in cfg.requirements ]
         if bad:
             return f'Unknown requirements: {", ".join(bad)}'
+        return None
     requires = [ r for r in _parse_list( ask.get(
         args.requires, '--requires', 'Requirements (separated by commas)',
         check_requires,
@@ -151,6 +165,7 @@ def createnew( args ):
         if bad:
             return ( f'Unknown plugins: {", ".join(bad)} (plugins must first'
                      ' be added to notebook_settings.toml)' )
+        return None
     plugins = _parse_list( ask.get( args.plugins, '--plugins',
                                     'Plugins (separated by commas)',
                                     check_plugins, default = 'none' ) )
@@ -179,7 +194,7 @@ def createnew( args ):
     try:
         NotebookSettings( settings_src )
     except SettingsError as e:
-        raise SystemExit(f'ERROR: {e}')
+        raise SystemExit(f'ERROR: {e}') from None
     nb = { 'cells' : [ make_cell( 'code', settings_src ),
                        make_cell( 'markdown', '## Introduction [intro]\n\n'
                                   'Describe here what this notebook is about.'

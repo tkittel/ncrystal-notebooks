@@ -3,8 +3,8 @@
 import json
 
 import pytest
+from conftest import INTRO, REPO, SETTINGS, make_nb, run_tool
 
-from conftest import REPO, make_nb, run_tool, SETTINGS, INTRO
 
 def test_repository_notebooks_pass_check( monkeypatch ):
     monkeypatch.delenv( 'NCNOTEBOOKDEVTOOL_REPOROOT', raising = False )
@@ -18,7 +18,7 @@ def test_usage():
         assert f' {mode} ' in p.stdout
 
 def test_canonical_form_is_idempotent( fakerepo ):
-    from ncnb_devtools.nbfile import load, canonical_text
+    from ncnb_devtools.nbfile import canonical_text, load
     f = fakerepo / 'notebooks' / 'one.ipynb'
     t1 = f.read_text()
     assert canonical_text( load(f) ) == t1
@@ -50,25 +50,28 @@ def test_precommit_strips_outputs_and_metadata( fakerepo ):
     assert json.dumps(nb2,indent=1,sort_keys=True,ensure_ascii=False)+'\n' \
         == canonical
 
+#The start of the settings cells in test_settings_errors:
+_HDR = '# NCrystal notebook settings\n# title: T\n# menutitle: M\n'
+
 @pytest.mark.parametrize( 'settings, error', [
     ( 'x = 1', 'must start with' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: one', 'missing "section"' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: Bad_Key\n# section: basics',
+    ( _HDR + '# shortkey: one', 'missing "section"' ),
+    ( _HDR + '# shortkey: Bad_Key\n# section: basics',
       'invalid shortkey' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: abcdefghijklmno\n# section: basics',
+    ( _HDR + '# shortkey: abcdefghijklmno\n# section: basics',
       'invalid shortkey' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# foo: bar',
+    ( _HDR + '# shortkey: k\n# section: basics\n# foo: bar',
       'unknown key' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: nosuch',
+    ( _HDR + '# shortkey: k\n# section: nosuch',
       'unknown section' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# requires: nosuch',
+    ( _HDR + '# shortkey: k\n# section: basics\n# requires: nosuch',
       'unknown requirement' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: k\n# section: basics\n# plugins: Nosuch',
+    ( _HDR + '# shortkey: k\n# section: basics\n# plugins: Nosuch',
       'unknown plugin' ),
-    ( '# NCrystal notebook settings\n# title: T\n# menutitle: M\n# shortkey: one\n# section: basics',
+    ( _HDR + '# shortkey: one\n# section: basics',
       'shortkey "one" is also used' ),
-    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n# section: basics',
-      'missing "menutitle"' ),
+    ( '# NCrystal notebook settings\n# title: T\n# shortkey: k\n'
+      '# section: basics', 'missing "menutitle"' ),
     ( '# NCrystal notebook settings\n# title: T\n# menutitle: ' + 'x'*31
       + '\n# shortkey: k\n# section: basics', 'longer than 30 characters' ),
     ( '# NCrystal notebook settings\n# title: T\n# menutitle: Menu Notebook one'
@@ -103,16 +106,18 @@ def test_line_length( fakerepo ):
     f.write_text( json.dumps(nb) )
     run_tool( 'precommit' )
 
-def test_list( fakerepo ):
+@pytest.mark.usefixtures('fakerepo')
+def test_list():
     p = run_tool( 'list' )
     assert 'Basics [basics]' in p.stdout
     assert 'one            Notebook one  [plot]' in p.stdout
 
-def test_expand_and_collapse( fakerepo ):
+@pytest.mark.usefixtures('fakerepo')
+def test_expand_and_collapse():
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
-    from ncnb_devtools.expand import expand, collapse, LOGO_HTML
+    from ncnb_devtools.expand import LOGO_HTML, collapse, expand
     from ncnb_devtools.nbfile import canonical_text, source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     cfg = load_config()
     nb = select_notebooks( ['one'], find_notebooks() )[0]
     original = nb.path.read_text()
@@ -151,9 +156,9 @@ def _write_params_nb( fakerepo, settings_extra, tags = (),
 
 def test_test_parameters( fakerepo ):
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     from ncnb_devtools.expand import expand
     from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     _write_params_nb( fakerepo, '\n# test-parameters: n = 1000' )
     assert 'notebooks OK' in run_tool( 'check' ).stdout
     nb = select_notebooks( ['one'], find_notebooks() )[0]
@@ -189,10 +194,11 @@ def test_test_parameters_errors( fakerepo, extra, tags, error ):
     p = run_tool( 'check', check = False )
     assert p.returncode != 0 and error in p.stdout
 
-def test_conda_only_requirement( fakerepo ):
+@pytest.mark.usefixtures('fakerepo')
+def test_conda_only_requirement():
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import NotebookSettings
     from ncnb_devtools.expand import Requirements
+    from ncnb_devtools.nbsettings import NotebookSettings
     cfg = load_config()
     s = NotebookSettings( SETTINGS.format( title = 'T', key = 'k' )
                           + ', openmc\n# plugins: Dummy' )
@@ -206,11 +212,13 @@ def test_select_by_shortkey_and_path( fakerepo ):
     nbs = find_notebooks()
     assert [ nb.shortkey for nb in select_notebooks( ['two'], nbs ) ] == ['two']
     p = fakerepo / 'notebooks' / 'one.ipynb'
-    assert [ nb.shortkey for nb in select_notebooks( [str(p)], nbs ) ] == ['one']
+    assert ( [ nb.shortkey for nb in select_notebooks( [str(p)], nbs ) ]
+             == ['one'] )
     with pytest.raises(SystemExit):
         select_notebooks( ['nosuch'], nbs )
 
-def test_expand_mode( fakerepo, tmp_path ):
+@pytest.mark.usefixtures('fakerepo')
+def test_expand_mode( tmp_path ):
     from ncnb_devtools.expand import LOGO_HTML
     out = tmp_path / 'out.ipynb'
     run_tool( 'expand', 'one', '--target', 'colab', '-o', str(out) )
@@ -225,9 +233,10 @@ def test_repo_settings_file_loads():
 
 def test_conda_platforms():
     import types
+
     from ncnb_devtools.config import Requirement
-    from ncnb_devtools.expand import Requirements
     from ncnb_devtools.envsetup import conda_platform
+    from ncnb_devtools.expand import Requirements
     assert conda_platform().split('-')[0] in ('linux','osx','win')
     cfg = types.SimpleNamespace(
         requirements = { 'ncrystal' : Requirement( 'ncrystal',
@@ -243,8 +252,8 @@ def test_conda_platforms():
 
 def test_hidden_input( fakerepo ):
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     from ncnb_devtools.expand import expand
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     f = fakerepo / 'notebooks' / 'one.ipynb'
     nb = make_nb( [ ('code', SETTINGS.format( title = 'Notebook one',
                                               key = 'one' ) ),
@@ -262,7 +271,7 @@ def test_hidden_input( fakerepo ):
     nbobj = select_notebooks( ['one'], find_notebooks() )[0]
     for target in ('site','pip','conda','colab'):
         cells = [ c for c in expand( nbobj, cfg, target )['cells']
-                  if 'x = 1' == ''.join(c['source'])
+                  if ''.join(c['source']) == 'x = 1'
                   or ''.join(c['source']).startswith(('y =','a0 =','b0 =')) ]
         hidden = [ c['metadata'].get('jupyter',{}).get('source_hidden',False)
                    and 'hide-input' in c['metadata'].get('tags',[])
@@ -316,11 +325,13 @@ def test_slow_setting( fakerepo ):
     p = run_tool( 'check', check = False )
     assert p.returncode != 0 and 'slow must be "yes" or "no"' in p.stdout
 
-def test_only_slow_and_skip_slow_conflict( fakerepo ):
+@pytest.mark.usefixtures('fakerepo')
+def test_only_slow_and_skip_slow_conflict():
     p = run_tool( 'test', '--only-slow', '--skip-slow', check = False )
     assert p.returncode != 0 and 'can not be combined' in p.stderr
 
-def test_notebook_selection_in_quick_modes( fakerepo ):
+@pytest.mark.usefixtures('fakerepo')
+def test_notebook_selection_in_quick_modes():
     assert 'All 1 notebook OK' in run_tool( 'check', 'one' ).stdout
     assert 'All 1 notebook OK' in run_tool( 'precommit', 'two' ).stdout
     out = run_tool( 'list', 'two' ).stdout
@@ -330,7 +341,10 @@ def test_notebook_selection_in_quick_modes( fakerepo ):
 
 def test_settings_tables_in_developer_docs():
     from ncnb_devtools.config import Config
-    from ncnb_devtools.site import settings_tables_markdown, SETTINGS_TABLES_MARKER
+    from ncnb_devtools.site import (
+        SETTINGS_TABLES_MARKER,
+        settings_tables_markdown,
+    )
     doc = ( REPO / 'devel' / 'site' / 'developers.md' ).read_text()
     assert doc.count( SETTINGS_TABLES_MARKER ) == 1
     cfg = Config( REPO / 'notebook_settings.toml' )
@@ -366,9 +380,9 @@ def test_heading_key_errors( fakerepo, md, error ):
 
 def test_heading_keys( fakerepo ):
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     from ncnb_devtools.expand import expand
     from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     md = ( 'See [the results](#res).\n## Results [res] ##\n\n#### Details\n\n'
            '```\n## code [x]\n```' )
     _write_md_nb( fakerepo, md )
@@ -389,13 +403,15 @@ def test_heading_keys( fakerepo ):
         assert last(target) == ( 'See [the results](#one-res).\n\n'
                                  '<a id="one-res"></a>\n\n' + rest )
 
-def test_time_limits_are_whole_seconds( fakerepo, monkeypatch ):
+@pytest.mark.usefixtures('fakerepo')
+def test_time_limits_are_whole_seconds( monkeypatch ):
     #The time limits are passed to _nbexec.py, which needs whole seconds (also
     #on Windows, where they are multiplied by windows_time_factor):
     import sys
     import types
-    from ncnb_devtools.config import load_config
+
     from ncnb_devtools.batch import time_limits
+    from ncnb_devtools.config import load_config
     cfg = load_config()
     args = types.SimpleNamespace( time_limit = None )
     for platform in ('linux','win32'):
@@ -410,14 +426,15 @@ def test_time_limits_are_whole_seconds( fakerepo, monkeypatch ):
 
 def test_test_parameters_in_several_cells( fakerepo ):
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     from ncnb_devtools.expand import expand
     from ncnb_devtools.nbfile import source_str
+    from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     #Assigned in more than one cell:
     _write_params_nb( fakerepo, '\n# test-parameters: n = 1000',
                       code = ( 'n = 1000000', 'n = 2000000', 'print(n)' ) )
     p = run_tool( 'check', check = False )
-    assert p.returncode != 0 and 'assigned in more than one code cell' in p.stdout
+    assert p.returncode != 0
+    assert 'assigned in more than one code cell' in p.stdout
     #Different parameters in different cells (not "n == 1", a comparison), get
     #their test values after their own cells:
     _write_params_nb( fakerepo, '\n# test-parameters: n = 10; m = 20',
@@ -430,4 +447,4 @@ def test_test_parameters_in_several_cells( fakerepo ):
     assert [ source_str(c) for c in e['cells'][2:] ] == [
         'n = 1000\nprint(n == 1)', head + 'n = 10', 'm = 2000', head + 'm = 20',
         'print(n,m)' ]
-    assert len( set( c['id'] for c in e['cells'] ) ) == len( e['cells'] )
+    assert len( { c['id'] for c in e['cells'] } ) == len( e['cells'] )

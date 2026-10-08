@@ -71,9 +71,10 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
     [4] https://endf-parserpy.readthedocs.io/en/latest/
     """
     import os
-    import subprocess
-    import shutil
     import pathlib
+    import shutil
+    import subprocess
+
     import endf_parserpy
 
     natural_isotopes={
@@ -278,7 +279,7 @@ def convert_endf_tsl_to_ace(endf_tsl, material_name=None, ace_name=None,
         else:
             # If not, use the decomposition in natural isotopes
             zaids = ( natural_isotopes[za]
-                      if za in natural_isotopes.keys()
+                      if za in natural_isotopes
                       else f"{za}" )
     if emax is None:
         emax = endf_dic[1][451]['EMAX']
@@ -354,8 +355,8 @@ stop
     return ace_filename, xsdir_filename
 
 if __name__ == '__main__':
-    import sys
     import argparse
+    import sys
     class CustomFormatter(argparse.RawDescriptionHelpFormatter,
                           argparse.ArgumentDefaultsHelpFormatter):
         pass

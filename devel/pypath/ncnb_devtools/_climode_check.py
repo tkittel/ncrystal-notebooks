@@ -9,13 +9,13 @@ def main( parser ):
                          help = """Notebooks (shortkeys or paths; default:
                          all).""" )
     args = parser.parse_args()
+    from .checks import check_all, report
     from .config import load_config
     from .nbsettings import find_notebooks, select_notebooks
-    from .checks import check_all, report
     allnbs = find_notebooks()
     notebooks = select_notebooks( args.NOTEBOOK, allnbs )
     #Check all (e.g. for unique shortkeys), but report only the selected:
-    selected = set( nb.relpath for nb in notebooks )
+    selected = { nb.relpath for nb in notebooks }
     problems = [ ( r, p ) for r, p in check_all( allnbs, load_config() )
                  if r in selected ]
     if not report( problems ):

@@ -3,8 +3,13 @@ run notebooks)."""
 
 import pathlib
 
-from .envs import ( EnvRequest, create_base_env, create_overlay,
-                    build_ncrystal_wheels, verify_ncrystal )
+from .envs import (
+    EnvRequest,
+    build_ncrystal_wheels,
+    create_base_env,
+    create_overlay,
+    verify_ncrystal,
+)
 from .expand import Requirements
 
 ENV_CHOICES = ('auto','venv','conda','current')
@@ -55,6 +60,7 @@ def colab_env():
     Colab runtime image (where the notebooks install their requirements
     themselves, as on Google Colab)."""
     import sys
+
     from .envs import Env
     python = pathlib.Path(sys.executable)
     return Env( python, [ python.parent ], 'the Colab runtime environment',
@@ -108,7 +114,6 @@ class EnvSetup:
             path = self.workdir / 'overlays' / f'overlay{len(self._overlays)}'
             ov = create_overlay( req, base, path,
                                  ncrystal_wheels = self._ncrystal_wheels(),
-                                 ncrystal_src = self.ncrystal_src,
                                  log = self.log )
             if self.ncrystal_src:
                 print('  Verified: '+verify_ncrystal(ov),flush=True)

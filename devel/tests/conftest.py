@@ -56,7 +56,8 @@ SETTINGS = ( '# NCrystal notebook settings\n# title: {title}\n'
 def fakerepo( tmp_path, monkeypatch ):
     """A minimal repository with two notebooks (in canonical form)."""
     ( tmp_path / 'notebook_settings.toml' ).write_text( MINIMAL_TOML )
-    shutil.copytree( REPO / 'devel' / 'codcache', tmp_path / 'devel' / 'codcache' )
+    shutil.copytree( REPO / 'devel' / 'codcache',
+                     tmp_path / 'devel' / 'codcache' )
     nbdir = tmp_path / 'notebooks'
     nbdir.mkdir()
     for key in ('one','two'):
@@ -72,8 +73,8 @@ def fakerepo( tmp_path, monkeypatch ):
     return tmp_path
 
 def run_tool( *args, check = True ):
-    p = subprocess.run( [ sys.executable, str(TOOL) ] + list(args),
-                        capture_output = True, text = True,
+    p = subprocess.run( [sys.executable, str(TOOL), *list(args)],
+                        capture_output = True, text = True, check = False,
                         stdin = subprocess.DEVNULL,
                         encoding = 'utf-8',
                         env = dict(os.environ) )

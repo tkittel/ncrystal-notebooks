@@ -33,14 +33,15 @@ def load( path ):
     try:
         nb = json.loads(path.read_text(encoding='utf-8'))
     except (UnicodeDecodeError,json.JSONDecodeError) as e:
-        raise NotebookFormatError(f'invalid JSON ({e})')
+        raise NotebookFormatError(f'invalid JSON ({e})') from None
     if not isinstance(nb,dict) or nb.get('nbformat') != 4:
         raise NotebookFormatError('not a notebook in format version 4')
     if not isinstance(nb.get('cells'),list):
         raise NotebookFormatError('no list of cells')
     for c in nb['cells']:
         if c.get('cell_type') not in ('code','markdown','raw'):
-            raise NotebookFormatError(f'unknown cell type: {c.get("cell_type")}')
+            raise NotebookFormatError('unknown cell type:'
+                                      f' {c.get("cell_type")}')
     return nb
 
 def source_str( cell ):

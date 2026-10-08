@@ -18,7 +18,7 @@ import pathlib
 import shutil
 
 from .dirs import reporoot
-from .expand import expand, Requirements
+from .expand import Requirements, expand
 
 SPHINX_PACKAGES = [ 'sphinx', 'myst-nb', 'sphinx-book-theme' ]
 
@@ -129,7 +129,7 @@ def settings_tables_markdown( cfg ):
     """Markdown tables of the sections, requirements and plugins available
     in notebook_settings.toml."""
     def code( items ):
-        return ', '.join( f'`{e}`' for e in items ) or '–'
+        return ', '.join( f'`{e}`' for e in items ) or '–'  # noqa: RUF001
     out = [ '**Requirements** (for `requires`):', '',
             '| Name | Provides | With pip | With conda |',
             '|---|---|---|---|' ]

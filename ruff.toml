@@ -1,0 +1,31 @@
+# Configuration of ruff (https://docs.astral.sh/ruff/) for the Python code in
+# the repository: the ncnotebookdevtool (devel/) and the utilities package. Run
+# "ncnotebookdevtool lint", which also checks the code in the notebooks, with
+# only a few simple rules (see LINT_NOTEBOOK_RULES in devel/pypath/ncnb_devtools/
+# _climode_lint.py).
+
+target-version = "py310"
+line-length = 80
+extend-include = [ "devel/bin/ncnotebookdevtool" ]
+extend-exclude = [ "notebooks" ]
+
+[lint]
+select = [ "E", "W", "F", "I", "B", "UP", "C4", "SIM", "PIE", "RUF", "PERF",
+           "PTH", "RET", "ARG", "PL" ]
+ignore = [
+    # Imports inside functions are deliberate (fast startup of the tool, and
+    # optional dependencies only imported when needed):
+    "PLC0415",
+    # Limits on the complexity of functions, and "magic" values:
+    "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR0917", "PLR2004",
+    # Appending in a loop (e.g. with a condition) is often clearer than a
+    # comprehension:
+    "PERF401",
+]
+
+[lint.per-file-ignores]
+# Imported script (from its author), kept close to its original: only the basic
+# checks (pyflakes and syntax errors):
+"utilities/ncrystal_notebook_utilities/endf2ace.py" = [
+    "E501", "W", "I", "B", "UP", "C4", "SIM", "PIE", "RUF", "PERF", "PTH",
+    "RET", "ARG", "PL" ]

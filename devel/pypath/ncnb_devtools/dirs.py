@@ -3,6 +3,7 @@
 import os
 import pathlib
 
+
 def reporoot():
     #Can be overridden, e.g. when testing the tool itself:
     override = os.environ.get('NCNOTEBOOKDEVTOOL_REPOROOT')

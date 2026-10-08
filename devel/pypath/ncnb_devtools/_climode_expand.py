@@ -12,10 +12,11 @@ def main( parser ):
                          help = 'Output file (.ipynb).' )
     args = parser.parse_args()
     import pathlib
+
     from .config import load_config
-    from .nbsettings import find_notebooks, select_notebooks
     from .expand import expand
     from .nbfile import dumps
+    from .nbsettings import find_notebooks, select_notebooks
     nb = select_notebooks( [args.NOTEBOOK], find_notebooks() )[0]
     if nb.settings is None:
         raise SystemExit(f'ERROR: {nb.relpath}: {nb.error}')

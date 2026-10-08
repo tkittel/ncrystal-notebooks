@@ -2,8 +2,9 @@ def download_file( url,
                    tgt_path = None,
                    skip_if_exists = False,
                    quiet = False ):
-    import requests
     import pathlib
+
+    import requests
     tgt_path = pathlib.Path( tgt_path or url.split('/')[-1] )
     if tgt_path.is_file():
         if skip_if_exists:
@@ -21,9 +22,9 @@ def download_file( url,
     return tgt_path
 
 def extract_archive( archive_path, dest, quiet = False ):
-    import tarfile
-    import sys
     import pathlib
+    import sys
+    import tarfile
     dest = pathlib.Path(dest)
     if not quiet:
         print(f"Extracting {archive_path.name}")

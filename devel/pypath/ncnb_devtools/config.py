@@ -2,6 +2,7 @@
 
 from .dirs import settings_file
 
+
 class ConfigError(RuntimeError):
     pass
 
@@ -64,12 +65,13 @@ class Section:
 
 class Config:
     def __init__( self, path = None ):
+        import pathlib
         path = path or settings_file()
         try:
             import tomllib
         except ImportError:
             import tomli as tomllib
-        with open(path,'rb') as fh:
+        with pathlib.Path(path).open('rb') as fh:
             data = tomllib.load(fh)
         unknown = set(data) - {'general','sections','requirements','plugins'}
         if unknown:
@@ -88,7 +90,8 @@ class Config:
         #The repository can be overridden (e.g. for website builds in forks):
         import os
         self.github_repo = ( os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO')
-                             or g.get('github_repo','mctools/ncrystal-notebooks') )
+                             or g.get('github_repo',
+                                      'mctools/ncrystal-notebooks') )
         self.colab_branch = g.get('colab_branch','googlecolab')
         self.website_url = g.get('website_url','')
         self.sections = [ Section(s) for s in data.get('sections',[]) ]
@@ -105,6 +108,7 @@ class Config:
         for s in self.sections:
             if s.key == key:
                 return s
+        return None
 
     @property
     def ncrystal_min_version_num( self ):

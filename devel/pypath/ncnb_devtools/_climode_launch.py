@@ -1,5 +1,6 @@
 def short_description():
-    return 'Open a notebook in Jupyter Lab, in a fresh directory and environment'
+    return ( 'Open a notebook in Jupyter Lab, in a fresh directory and'
+             ' environment' )
 
 def main( parser ):
     parser.init( short_description() + """. The notebook (given by shortkey or
@@ -25,13 +26,14 @@ def launch( args ):
     import shutil
     import subprocess
     import tempfile
+
     from .config import load_config
-    from .nbsettings import find_notebooks, select_notebooks
-    from .expand import Requirements, expand, collapse
-    from .envsetup import EnvSetup, env_kind
     from .envs import pip_install
+    from .envsetup import EnvSetup, env_kind
+    from .expand import Requirements, collapse, expand
+    from .nbfile import canonical_text, load
+    from .nbsettings import find_notebooks, select_notebooks
     from .runner import prepare_rundir, write_kernelspec
-    from .nbfile import load, canonical_text
 
     cfg = load_config()
     nb = select_notebooks( [args.NOTEBOOK], find_notebooks() )[0]

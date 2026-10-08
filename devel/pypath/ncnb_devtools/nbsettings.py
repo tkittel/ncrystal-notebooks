@@ -143,7 +143,7 @@ class Notebook:
 
     def __init__( self, path ):
         from .dirs import reporoot
-        from .nbfile import load, source_str, NotebookFormatError
+        from .nbfile import NotebookFormatError, load, source_str
         self.path = path
         self.relpath = path.relative_to(reporoot()).as_posix()
         self.settings = None
@@ -173,7 +173,7 @@ def assignment_cells( cells, name ):
     (e.g. "n = 1000000"), where the test value of a test parameter with this
     name is assigned when testing (in a cell inserted after it)."""
     from .nbfile import source_str
-    pattern = re.compile( r'^%s\s*=(?!=)' % re.escape(name), re.M )
+    pattern = re.compile( '^' + re.escape(name) + r'\s*=(?!=)', re.M )
     return [ i for i, c in enumerate(cells)
              if c['cell_type'] == 'code' and pattern.search(source_str(c)) ]
 

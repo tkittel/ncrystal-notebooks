@@ -68,8 +68,13 @@ def check_notebook( nb, cfg ):
 def heading_problems( nb ):
     """Problems with the section headings and their keys (see headings.py),
     and with links to sections."""
-    from .headings import ( find_headings, section_links, KEY_RE, KEY_RULE,
-                            INTRO_HEADING )
+    from .headings import (
+        INTRO_HEADING,
+        KEY_RE,
+        KEY_RULE,
+        find_headings,
+        section_links,
+    )
     problems = []
     cells = nb.nb['cells']
     intro = source_str(cells[1]).strip() if len(cells) > 1 else ''

@@ -35,15 +35,27 @@ FAILED_WARNING = ( 'This notebook failed when the website was built, so its'
 def build_site( args ):
     import json
     import pathlib
+
+    from .batch import (
+        cleanup_workdir,
+        limits_description,
+        make_workdir,
+        print_summary,
+        quick_checks,
+        run_batch,
+    )
     from .config import load_config
-    from .expand import Requirements
-    from .envsetup import env_kind, conda_platform
     from .envs import venv_env
-    from .batch import ( limits_description, quick_checks, make_workdir, run_batch, print_summary,
-                         cleanup_workdir )
-    from .site import ( write_sources, build_html, finalize_executed,
-                        links_markdown, SPHINX_PACKAGES )
+    from .envsetup import conda_platform, env_kind
+    from .expand import Requirements
     from .nbsettings import select_notebooks
+    from .site import (
+        SPHINX_PACKAGES,
+        build_html,
+        finalize_executed,
+        links_markdown,
+        write_sources,
+    )
     cfg = load_config()
     notebooks = select_notebooks( args.NOTEBOOK, quick_checks( cfg ) )
     out = pathlib.Path(args.output).absolute()
@@ -99,5 +111,6 @@ def build_site( args ):
                     log = workdir / 'environments.log' )
     build_html( env, out / 'src', out / 'html', workdir / 'sphinx.log' )
     cleanup_workdir( args, workdir, nfail )
-    print(f'\nWebsite built in {out / "html"} (open {out / "html" / "index.html"}'
+    html = out / 'html'
+    print(f'\nWebsite built in {html} (open {html / "index.html"}'
           ' in a browser)')

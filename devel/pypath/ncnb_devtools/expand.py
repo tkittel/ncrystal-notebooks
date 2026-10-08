@@ -41,7 +41,7 @@ def _combine_extras( pkgs, name ):
     """Combine e.g. "name", "name[a]" and "name[b]" into "name[a,b]" (at the
     place of the first of them)."""
     import re
-    pat = re.compile(r'^%s(\[([^\]]*)\])?$'%re.escape(name))
+    pat = re.compile(r'^' + re.escape(name) + r'(\[([^\]]*)\])?$')
     extras, res, pos = [], [], None
     for p in pkgs:
         m = pat.match(p)
@@ -55,7 +55,7 @@ def _combine_extras( pkgs, name ):
             if e.strip() and e.strip() not in extras:
                 extras.append(e.strip())
     if pos is not None:
-        res[pos] = name + ( '[%s]'%','.join(sorted(extras)) if extras else '' )
+        res[pos] = name + ( f'[{",".join(sorted(extras))}]' if extras else '' )
     return res
 
 class Requirements:
@@ -73,7 +73,8 @@ class Requirements:
 
     def source_plugins( self ):
         """Names of plugins installed from git (i.e. built from source)."""
-        return [ n for n, spec in zip( self.plugin_names, self.plugins )
+        return [ n for n, spec in zip( self.plugin_names, self.plugins,
+                                             strict = True )
                  if 'git+' in spec ]
 
     def unavailable_with_conda( self, platform ):
@@ -206,12 +207,14 @@ def colab_install_cells( reqs ):
     """Installation cells for Google Colab, as lists of lines."""
     if not reqs.needs_conda:
         return [ [ '#Install software on Google Colab:',
-                   '%pip -q install ' + _quote(reqs.pip_packages+reqs.plugins) ] ]
-    first = [ '#Install conda on Google Colab. This restarts the kernel, so the',
-              '#notebook will say that it crashed. This is expected!',
-              '%pip -q install condacolab',
-              'import condacolab',
-              'condacolab.install_miniforge()' ]
+                   '%pip -q install '
+                   + _quote( reqs.pip_packages + reqs.plugins ) ] ]
+    first = [
+        '#Install conda on Google Colab. This restarts the kernel, so the',
+        '#notebook will say that it crashed. This is expected!',
+        '%pip -q install condacolab',
+        'import condacolab',
+        'condacolab.install_miniforge()' ]
     second = [ '#Install software on Google Colab:',
                '!mamba install -y -q --override-channels -c conda-forge '
                + _quote(reqs.conda_packages) ]
@@ -238,7 +241,7 @@ def expand( nb, cfg, target, links_markdown = None ):
     rest = cells[1:]
     code = setup_code( s, reqs, cfg, target )
     if target in ('test','launch'):
-        cells[0]['source'] = '\n'.join( [ s.source, MARKER ] + code )
+        cells[0]['source'] = '\n'.join( [s.source, MARKER, *code] )
         if target == 'test':
             insert_test_parameters( cells, s )
         return out
@@ -255,7 +258,7 @@ def expand( nb, cfg, target, links_markdown = None ):
                                    f'ncnb-install{i}' ) )
         last = icells[-1] + code
     else:
-        last = install_comment( reqs, target ) + [''] + code
+        last = [*install_comment(reqs, target), '', *code]
     new.append( make_cell( 'code', '\n'.join(last), first_id or 'ncnb-setup' ) )
     for c in rest:
         if is_input_hidden( c, cfg ):

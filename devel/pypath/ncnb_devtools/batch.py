@@ -4,6 +4,7 @@ import pathlib
 import shutil
 import tempfile
 
+
 def add_batch_args( parser ):
     from .envsetup import add_env_args
     add_env_args( parser )
@@ -25,8 +26,8 @@ def add_batch_args( parser ):
                          help = 'Keep the work directory.' )
 
 def quick_checks( cfg ):
-    from .nbsettings import find_notebooks
     from .checks import check_all, report
+    from .nbsettings import find_notebooks
     notebooks = find_notebooks()
     print('Running quick checks of all notebooks', flush = True)
     if not report( check_all( notebooks, cfg ) ):
@@ -107,8 +108,9 @@ def run_batch( jobs, args, cfg, workdir, target ):
     """Run the notebooks in jobs (list of (notebook,envkind)), expanded for the
     target, and return a list of (notebook,RunResult)."""
     from concurrent.futures import ThreadPoolExecutor
-    from .expand import expand
+
     from .envsetup import EnvSetup
+    from .expand import expand
     from .runner import prepare_rundir, run_notebook
     setup = EnvSetup( args, cfg, workdir )
     prepared = []
@@ -117,7 +119,8 @@ def run_batch( jobs, args, cfg, workdir, target ):
         nbfile = prepare_rundir( workdir / nb.shortkey, nb.path.name,
                                  expand( nb, cfg, target ) )
         prepared.append( ( nb, env, nbfile,
-                           time_limits( args, cfg, target, nb.settings.slow ) ) )
+                           time_limits( args, cfg, target,
+                                        nb.settings.slow ) ) )
     #Warm up each environment, so one-time costs (e.g. building the font cache
     #of matplotlib, or the first imports of large packages on macOS) do not
     #count in the times of the notebooks:
