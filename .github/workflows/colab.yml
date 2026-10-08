@@ -59,14 +59,20 @@ jobs:
         include: ${{ fromJSON(needs.select.outputs.include) }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    #The image does not fit in the free disk space of the runner otherwise:
-    - name: Free disk space
+    #The image needs about 30 GB (20 GB unpacked, plus the download). The
+    #runners usually have much more free space, so only if not, space is freed
+    #by removing large preinstalled tools (which takes about 2 minutes):
+    - name: Check the free disk space
       run: |
         df -h /
-        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
-                    /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
-        sudo docker image prune --all --force
-        df -h /
+        avail=$(df --output=avail -BG / | tail -n 1 | tr -dc '0-9')
+        if [ "$avail" -lt 40 ]; then
+          echo "Only $avail GB free, freeing space"
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          df -h /
+        fi
     - name: Pull the Colab runtime image
       run: |
         time docker pull --quiet "$COLAB_IMAGE"
