@@ -21,6 +21,41 @@ Running `ncnotebookdevtool` without arguments lists the available modes, and
 3.10 or later, and (for running notebooks) either pip or conda (mamba,
 micromamba or conda).
 
+## Editing a notebook
+
+Editing a notebook is much like editing any other notebook in Jupyter Lab. Just
+two things are special: the first cell of every notebook is a
+[settings cell](#the-settings-cell), with information about the notebook (like
+its title and what it needs), and before committing anything you must always
+run a command which cleans up the notebooks (see
+[Before committing](#before-committing)).
+
+The easiest way to edit a notebook is:
+
+```
+ncnotebookdevtool launch SHORTKEY
+```
+
+This opens the notebook in Jupyter Lab, running in a fresh directory and in an
+environment with everything the notebook needs, created and cached by the tool
+(`--env current` uses your current environment instead, without modifying it).
+The settings cell is expanded with the setup code (below a marker line, which
+must not be edited). When you are done, stop Jupyter Lab with Ctrl-C in the
+terminal. The notebook is then written back into the repository, with the
+settings cell restored and outputs removed, and the previous version is kept
+as `NOTEBOOK.ipynb.orig`.
+
+To add a new notebook, run:
+
+```
+ncnotebookdevtool createnew
+```
+
+This asks for the title, shortkey, section, requirements and plugins of the
+notebook, creates it with its settings cell (by default as
+`notebooks/SHORTKEY/SHORTKEY.ipynb`), and tells you how to `launch` it for
+editing.
+
 ## The settings cell
 
 Every notebook starts with a *settings cell*: a code cell with only comments,
@@ -109,34 +144,6 @@ tested in conda environments only.
 These are the current definitions:
 
 <!-- ncnotebookdevtool: settings tables -->
-
-## Editing a notebook
-
-The easiest way to edit a notebook is:
-
-```
-ncnotebookdevtool launch SHORTKEY
-```
-
-This opens the notebook in Jupyter Lab, running in a fresh directory and in an
-environment with everything the notebook needs, created and cached by the tool
-(`--env current` uses your current environment instead, without modifying it).
-The settings cell is expanded with the setup code (below a marker line, which
-must not be edited). When you are done, stop Jupyter Lab with Ctrl-C in the
-terminal. The notebook is then written back into the repository, with the
-settings cell restored and outputs removed, and the previous version is kept
-as `NOTEBOOK.ipynb.orig`.
-
-To add a new notebook, run:
-
-```
-ncnotebookdevtool createnew
-```
-
-This asks for the title, shortkey, section, requirements and plugins of the
-notebook, creates it with its settings cell (by default as
-`notebooks/SHORTKEY/SHORTKEY.ipynb`), and tells you how to `launch` it for
-editing.
 
 ## Before committing
 
