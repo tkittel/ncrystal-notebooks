@@ -77,7 +77,8 @@ def lint_notebooks( ruff, notebooks = None ):
             if nb.settings is None:
                 continue
             f = pathlib.Path(tmpdir) / f'{nb.shortkey}.ipynb'
-            f.write_text( json.dumps( expand( nb, cfg, 'launch' ) ),
+            f.write_text( json.dumps( expand( nb, cfg, 'launch',
+                                              generated_cell = False ) ),
                           encoding = 'utf-8' )
             names[f.name] = nb.relpath
         p = subprocess.run( [ *ruff, 'check', '--isolated', '--quiet',

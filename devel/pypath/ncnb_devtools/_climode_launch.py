@@ -30,7 +30,7 @@ def launch( args ):
     from .config import load_config
     from .envs import pip_install
     from .envsetup import EnvSetup, env_kind
-    from .expand import Requirements, collapse, expand
+    from .expand import Requirements, collapse, expand, generated_cell_source
     from .nbfile import canonical_text, load
     from .nbsettings import find_notebooks, select_notebooks
     from .runner import prepare_rundir, write_kernelspec
@@ -54,7 +54,8 @@ def launch( args ):
         print('Installing jupyterlab in the environment', flush = True)
         pip_install( env, ['jupyterlab'] )
     rundir = base / nb.shortkey
-    nbfile = prepare_rundir( rundir, nb.path.name, expand( nb, cfg, 'launch' ) )
+    expanded = expand( nb, cfg, 'launch' )
+    nbfile = prepare_rundir( rundir, nb.path.name, expanded )
     jdatadir = base / 'jupyterdata'
     write_kernelspec( env, jdatadir )
     environ = env.environ()
@@ -90,6 +91,10 @@ def launch( args ):
 
     #Save the edited notebook back in canonical form:
     edited = load( nbfile )
+    gensrc = generated_cell_source( edited )
+    if gensrc is not None and gensrc != generated_cell_source( expanded ):
+        print('\nWARNING: Your changes to the cell with generated code were'
+              ' discarded (to change the setup, edit the settings cell).')
     collapse( edited )
     text = canonical_text( edited )
     if text == original:

@@ -18,6 +18,10 @@ def check_notebook( nb, cfg ):
     if MARKER in source_str(nb.nb['cells'][0]).splitlines():
         problems.append('the settings cell contains generated code:'
                         f' {PRECOMMIT_HINT}')
+    from .expand import generated_cell_source
+    if generated_cell_source( nb.nb ) is not None:
+        problems.append('the notebook contains the cell with generated code:'
+                        f' {PRECOMMIT_HINT}')
     if not cfg.section(s.section):
         problems.append(f'unknown section "{s.section}" (sections are defined'
                         ' in notebook_settings.toml)')

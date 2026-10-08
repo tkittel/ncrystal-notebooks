@@ -115,20 +115,39 @@ def test_list():
 @pytest.mark.usefixtures('fakerepo')
 def test_expand_and_collapse():
     from ncnb_devtools.config import load_config
-    from ncnb_devtools.expand import LOGO_HTML, collapse, expand
+    from ncnb_devtools.expand import (
+        GENERATED_CELL_HEADER,
+        GENERATED_CELL_ID,
+        LOGO_HTML,
+        collapse,
+        expand,
+    )
     from ncnb_devtools.nbfile import canonical_text, source_str
     from ncnb_devtools.nbsettings import find_notebooks, select_notebooks
     cfg = load_config()
     nb = select_notebooks( ['one'], find_notebooks() )[0]
     original = nb.path.read_text()
+    settings_src = source_str( nb.nb['cells'][0] )
     for target in ('test','launch'):
         e = expand( nb, cfg, target )
-        src = source_str( e['cells'][0] )
+        if target == 'launch':
+            #The settings cell is unchanged, and followed by the cell with
+            #the generated code:
+            assert source_str( e['cells'][0] ) == settings_src
+            assert e['cells'][1]['id'] == GENERATED_CELL_ID
+            src = source_str( e['cells'][1] )
+            assert src.startswith( '\n'.join(GENERATED_CELL_HEADER) )
+        else:
+            src = source_str( e['cells'][0] )
         assert 'import NCrystal as NC' in src
         assert '%matplotlib ' + ( 'ipympl' if target == 'launch'
                                   else 'inline' ) in src
         assert collapse( e )
         assert canonical_text( e ) == original
+    #For linting, the cells are numbered as in the notebook:
+    e = expand( nb, cfg, 'launch', generated_cell = False )
+    assert len( e['cells'] ) == len( nb.nb['cells'] )
+    assert 'import NCrystal as NC' in source_str( e['cells'][0] )
     for target in ('pip','conda','colab','site'):
         e = expand( nb, cfg, target )
         #The logo is shown next to the title, except on the website (which

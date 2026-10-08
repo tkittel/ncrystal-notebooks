@@ -31,8 +31,9 @@ Keys (title, menutitle, shortkey and section are required):
                     one code cell of the notebook, after which its test value
                     is assigned when testing (see assignment_cells).
 
-When the tool generates code for the notebook (e.g. setup code for testing),
-the code is added to the settings cell after a marker line (MARKER below), and
+When the tool generates setup code for testing a notebook, the code is added
+to the settings cell after a marker line (MARKER below). For editing, it is in
+a separate cell after the settings cell instead (see expand.py). Either is
 removed again when the notebook is brought back into its canonical form.
 """
 

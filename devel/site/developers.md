@@ -41,11 +41,16 @@ ncnotebookdevtool launch SHORTKEY
 This opens the notebook in Jupyter Lab, running in a fresh directory and in an
 environment with everything the notebook needs, created and cached by the tool
 (`--env current` uses your current environment instead, without modifying it).
-The settings cell is expanded with the setup code (below a marker line, which
-must not be edited). When you are done, stop Jupyter Lab with Ctrl-C in the
-terminal. The notebook is then written back into the repository, with the
-settings cell restored and outputs removed, and the previous version is kept
-as `NOTEBOOK.ipynb.orig`.
+The settings cell is followed by a cell with the setup code generated from it
+(installation checks, imports, plotting setup and so on), which is not part of
+the notebook in the repository. Do not edit that cell: it is removed again when
+the notebook is saved back, and the tool warns if it was changed. To change the
+setup, edit the settings cell instead, save the notebook, stop Jupyter Lab, and
+launch the notebook again, so that the cell is generated from the new settings.
+
+When you are done, stop Jupyter Lab with Ctrl-C in the terminal. The notebook
+is then written back into the repository, without the generated cell and with
+outputs removed, and the previous version is kept as `NOTEBOOK.ipynb.orig`.
 
 To add a new notebook, run:
 

@@ -14,22 +14,14 @@ def main( parser ):
     args = parser.parse_args()
     from .checks import check_all, report
     from .config import load_config
-    from .nbfile import canonical_text, source_str, split_source
-    from .nbsettings import (
-        find_notebooks,
-        select_notebooks,
-        split_settings_source,
-    )
+    from .expand import collapse
+    from .nbfile import canonical_text
+    from .nbsettings import find_notebooks, select_notebooks
     for nb in select_notebooks( args.NOTEBOOK, find_notebooks() ):
         if nb.nb is None:
             continue
-        cells = nb.nb['cells']
-        if cells and cells[0]['cell_type'] == 'code':
-            #Remove generated code from the settings cell:
-            settings_src, generated = split_settings_source(
-                source_str(cells[0]) )
-            if generated:
-                cells[0]['source'] = split_source(settings_src)
+        #Remove generated code (e.g. from editing the expanded notebook):
+        collapse( nb.nb )
         text = canonical_text(nb.nb)
         if nb.path.read_text(encoding='utf-8') != text:
             nb.path.write_text(text,encoding='utf-8')
