@@ -65,11 +65,14 @@ def launch( args ):
     print(f'\nOpening {nb.relpath} in Jupyter Lab (in {rundir}).'
           '\nStop Jupyter Lab with Ctrl-C when done, to save the notebook back'
           ' into the repository.\n', flush = True)
-    #The browser opens the address of Jupyter Lab directly, not a redirect file
-    #in the (temporary) Jupyter data directory, which browsers with their own
-    #/tmp (e.g. snap packages on Ubuntu) can not open:
-    cmd = [ str(env.python), '-m', 'jupyterlab', nbfile.name,
-            '--ServerApp.use_redirect_file=False' ]
+    #The browser opens the address of the notebook in Jupyter Lab directly, not
+    #a redirect file in the (temporary) Jupyter data directory, which browsers
+    #with their own /tmp (e.g. snap packages on Ubuntu) can not open:
+    import urllib.parse
+    cmd = [ str(env.python), '-m', 'jupyterlab',
+            '--ServerApp.use_redirect_file=False',
+            '--LabApp.default_url=/lab/tree/'
+            + urllib.parse.quote(nbfile.name) ]
     if args.no_browser:
         cmd.append('--no-browser')
     proc = subprocess.Popen( cmd, cwd = rundir, env = environ )
