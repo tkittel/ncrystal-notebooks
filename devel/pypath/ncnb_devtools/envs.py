@@ -100,7 +100,8 @@ class Env:
     """An environment in which notebooks can run."""
 
     def __init__( self, python, bindirs, description, conda_prefix = None,
-                  jupyter_paths = (), activated = None ):
+                  jupyter_paths = (), activated = None,
+                  keep_pythonpath = False ):
         self.python = pathlib.Path(python)
         self.bindirs = [ pathlib.Path(d) for d in bindirs ]
         #Jupyter data directories (e.g. with nbconvert templates) of the
@@ -111,6 +112,9 @@ class Env:
         #Environment variables of the activated conda environment (None for
         #other environments):
         self.activated = activated
+        #Keep PYTHONPATH (needed e.g. in Google's Colab runtime image, where it
+        #provides the google.colab module):
+        self.keep_pythonpath = keep_pythonpath
 
     def environ( self ):
         """Environment variables for processes in this environment."""
@@ -124,7 +128,8 @@ class Env:
         #https://github.com/IAEA-NDS/endf-parserpy/issues/42):
         env.setdefault( 'INSTALL_ENDF_PARSERPY_CPP', 'no' )
         for k in ('PYTHONPATH','PYTHONHOME','VIRTUAL_ENV'):
-            env.pop(k,None)
+            if not ( k == 'PYTHONPATH' and self.keep_pythonpath ):
+                env.pop(k,None)
         if self.conda_prefix:
             env['CONDA_PREFIX'] = str(self.conda_prefix)
         #Avoid using kernels, configuration and data from the user's Jupyter

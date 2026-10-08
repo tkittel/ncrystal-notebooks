@@ -46,6 +46,11 @@ min_full_time_slow = 10
 # compilation of McStas instruments) take much longer there:
 windows_time_factor = 2
 
+# When running notebooks in Google's Colab runtime image (the "test" mode with
+# --colab), the notebooks install their requirements themselves, which can take
+# this many seconds more than the limits above:
+colab_install_time = 180
+
 # GitHub repository, the branch with the Google Colab versions of the
 # notebooks, and the website:
 github_repo = "mctools/ncrystal-notebooks"

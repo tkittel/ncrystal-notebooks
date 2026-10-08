@@ -12,6 +12,15 @@ def main( parser ):
                          help = """Only run notebooks marked as slow in their
                          settings cells (the counterpart of --skip-slow, e.g.
                          for a separate CI job).""" )
+    parser.add_argument( '--colab', action = 'store_true',
+                         help = """Run the notebooks as on Google Colab: the
+                         Colab versions of the notebooks (with their
+                         installation cells, and the test parameters) run in
+                         the current Python environment, without the tool
+                         installing anything. This modifies the environment,
+                         and is only possible in Google's Colab runtime image
+                         (as in the colab workflow of the repository).
+                         Notebooks needing conda are not supported yet.""" )
     parser.add_argument( '--select', choices = ('all','pip','conda'),
                          default = 'all',
                          help = """Only run notebooks which can be installed
@@ -22,6 +31,10 @@ def main( parser ):
     args = parser.parse_args()
     if args.only_slow and args.skip_slow:
         parser.error('--only-slow and --skip-slow can not be combined')
+    if args.colab and ( args.env != 'auto' or args.ncrystal_src
+                        or args.fresh_envs or args.python ):
+        parser.error('--colab can not be combined with --env, --ncrystal-src,'
+                     ' --fresh-envs or --python')
     run_tests( args )
 
 def run_tests( args ):
@@ -29,10 +42,14 @@ def run_tests( args ):
     from .config import load_config
     from .nbsettings import select_notebooks
     from .expand import Requirements
-    from .envsetup import env_kind, conda_platform
+    from .envsetup import env_kind, conda_platform, in_colab_image
     from .batch import ( limits_description, quick_checks, make_workdir, run_batch, print_summary,
                          cleanup_workdir )
     cfg = load_config()
+    if args.colab and not in_colab_image():
+        raise SystemExit('ERROR: --colab is only possible in Google\'s Colab'
+                         ' runtime image (the notebooks install their'
+                         ' requirements into the current environment)')
     notebooks = quick_checks( cfg )
     jobs = []
     for nb in select_notebooks( args.NOTEBOOK, notebooks ):
@@ -45,6 +62,19 @@ def run_tests( args ):
         if args.select == 'pip' and reqs.needs_conda:
             continue
         if args.select == 'conda' and not reqs.needs_conda:
+            continue
+        if args.colab:
+            if reqs.needs_conda:
+                #TODO: The Colab versions of these notebooks install conda with
+                #condacolab, which restarts the kernel (nbclient would see a
+                #crash):
+                msg = ( f'{nb.shortkey} needs conda, which is not yet'
+                        ' supported with --colab' )
+                if args.NOTEBOOK:
+                    raise SystemExit(f'ERROR: {msg}')
+                print(f'Skipping {msg}')
+                continue
+            jobs.append( ( nb, 'colab' ) )
             continue
         kind = env_kind( reqs, args.env )
         if kind is None:
@@ -78,10 +108,11 @@ def run_tests( args ):
         jobs.append( ( nb, kind ) )
     if not jobs:
         raise SystemExit('ERROR: No notebooks selected')
+    target = 'colabtest' if args.colab else 'test'
     workdir = make_workdir( args )
-    results = run_batch( jobs, args, cfg, workdir, 'test' )
+    results = run_batch( jobs, args, cfg, workdir, target )
     nfail = print_summary( results, workdir,
-                           limits_description( args, cfg, 'test' ) )
+                           limits_description( args, cfg, target ) )
     cleanup_workdir( args, workdir, nfail )
     if nfail:
         raise SystemExit(f'\nERROR: {nfail} of {len(results)} notebooks'

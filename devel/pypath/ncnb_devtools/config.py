@@ -84,6 +84,7 @@ class Config:
         self.max_full_time_slow = int(g.get('max_full_time_slow',900))
         self.min_full_time_slow = int(g.get('min_full_time_slow',10))
         self.windows_time_factor = float(g.get('windows_time_factor',2))
+        self.colab_install_time = int(g.get('colab_install_time',180))
         #The repository can be overridden (e.g. for website builds in forks):
         import os
         self.github_repo = ( os.environ.get('NCNOTEBOOKDEVTOOL_GITHUB_REPO')

@@ -52,32 +52,43 @@ def normal_time_limit( cfg, target ):
     """The time limit for notebooks not marked as slow (more on Windows, where
     e.g. compilation is slower)."""
     import sys
-    normal = cfg.max_test_time if target == 'test' else cfg.max_full_time
+    normal = cfg.max_test_time if is_test(target) else cfg.max_full_time
     if sys.platform == 'win32':
         normal *= cfg.windows_time_factor
     return normal
+
+def is_test( target ):
+    """Whether the target runs notebooks with their test parameters."""
+    return target in ('test','colabtest')
+
+def install_time( cfg, target ):
+    """Extra time for notebooks installing their requirements themselves."""
+    return cfg.colab_install_time if target == 'colabtest' else 0
 
 def time_limits( args, cfg, target, slow ):
     """The maximum and minimum (or None) time for running a notebook."""
     if args.time_limit:
         return args.time_limit, None
-    normal = normal_time_limit( cfg, target )
+    extra = install_time( cfg, target )
+    normal = normal_time_limit( cfg, target ) + extra
     if not slow:
         return normal, None
     #Slow notebooks get more time, but full runs must also really be slow (not
     #checked in tests, where test-parameters can make them faster):
-    if target == 'test':
-        return cfg.max_test_time_slow, None
+    if is_test(target):
+        return cfg.max_test_time_slow + extra, None
     return cfg.max_full_time_slow, cfg.min_full_time_slow
 
 def limits_description( args, cfg, target ):
     if args.time_limit:
         return f'{args.time_limit} s'
-    t = target == 'test'
-    normal = f'{normal_time_limit( cfg, target ):g}'
-    slow = cfg.max_test_time_slow if t else cfg.max_full_time_slow
+    t = is_test(target)
+    extra = install_time( cfg, target )
+    normal = f'{normal_time_limit( cfg, target ) + extra:g}'
+    slow = ( cfg.max_test_time_slow if t else cfg.max_full_time_slow ) + extra
     if t:
-        return f'{normal} s, or {slow} s for slow notebooks'
+        note = ( f' (including {extra} s for installation)' if extra else '' )
+        return f'{normal} s, or {slow} s for slow notebooks{note}'
     return ( f'{normal} s, or {cfg.min_full_time_slow}-{slow} s for slow'
              ' notebooks' )
 

@@ -173,6 +173,12 @@ repository (instead of the released NCrystal), add
 then built from that clone, and the tool verifies that the notebooks really use
 it.
 
+The `colab` workflow also runs the Google Colab versions of the notebooks, with
+their installation cells, in Google's Colab runtime image (which has the same
+Python and preinstalled packages as Google Colab). It uses
+`ncnotebookdevtool test --colab`, which only works in that image. Notebooks
+needing conda are not yet tested there.
+
 ## The website
 
 The website is built in CI from the main branch and published on GitHub

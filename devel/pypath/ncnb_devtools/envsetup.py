@@ -50,6 +50,24 @@ def env_kind( reqs, choice ):
         return None
     return choice
 
+def colab_env():
+    """The current environment as it is, for running notebooks in Google's
+    Colab runtime image (where the notebooks install their requirements
+    themselves, as on Google Colab)."""
+    import sys
+    from .envs import Env
+    python = pathlib.Path(sys.executable)
+    return Env( python, [ python.parent ], 'the Colab runtime environment',
+                keep_pythonpath = True )
+
+def in_colab_image():
+    """Whether this runs in Google's Colab runtime image (or on Colab)."""
+    import importlib.util
+    try:
+        return importlib.util.find_spec('google.colab') is not None
+    except ImportError:
+        return False
+
 class EnvSetup:
     """Environments for notebooks, created on demand."""
 
@@ -73,6 +91,8 @@ class EnvSetup:
 
     def env_for( self, nb, kind ):
         """The environment for the notebook."""
+        if kind == 'colab':
+            return colab_env()
         reqs = Requirements( nb.settings, self.cfg )
         req = EnvRequest( reqs, kind, ncrystal_src = bool(self.ncrystal_src) )
         bkey = repr(req.key)

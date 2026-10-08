@@ -1,0 +1,71 @@
+name: colab
+
+# Runs the Colab versions of the notebooks (with their installation cells) in
+# Google's Colab runtime image, i.e. with the same Python and preinstalled
+# packages as on Google Colab, to catch problems like failing installations or
+# version conflicts there. It does not test Colab itself (e.g. its user
+# interface). Notebooks needing conda are not supported yet.
+#
+# The image is large (about 7 GB compressed). Whether to keep running this on
+# every push is to be decided once its overhead is known.
+
+on:
+  push:
+  schedule:
+    - cron: '30 11 * * 3'  # 11:30 every Wednesday
+  workflow_dispatch:
+
+env:
+  COLAB_IMAGE: us-docker.pkg.dev/colab-images/public/cpu-runtime:latest
+
+jobs:
+
+  colab:
+    name: Notebooks in the Colab runtime image
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    #The image does not fit in the free disk space of the runner otherwise:
+    - name: Free disk space
+      run: |
+        df -h /
+        sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+                    /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+        sudo docker image prune --all --force
+        df -h /
+    - name: Pull the Colab runtime image
+      run: |
+        time docker pull --quiet "$COLAB_IMAGE"
+        docker image inspect "$COLAB_IMAGE" \
+          --format 'Size: {{.Size}} bytes, created {{.Created}}'
+    - name: Cache data downloaded by notebooks
+      uses: actions/cache@v5
+      with:
+        path: ${{ runner.temp }}/ncnbdata
+        key: ncnb-data-colab-v1
+    #Notebooks marked as slow are skipped (as in the tests workflow). The
+    #packages for running notebooks with nbclient are installed only if the
+    #image lacks them:
+    - name: Run notebooks in the Colab runtime image
+      run: |
+        mkdir -p "${{ runner.temp }}/work" "${{ runner.temp }}/ncnbdata"
+        docker run --rm --entrypoint /bin/bash \
+          -v "$GITHUB_WORKSPACE:/repo" -w /repo \
+          -v "${{ runner.temp }}/work:/work" \
+          -v "${{ runner.temp }}/ncnbdata:/ncnbdata" \
+          -e NCRYSTAL_NOTEBOOK_DATA_CACHE=/ncnbdata \
+          "$COLAB_IMAGE" -c '
+            set -eu
+            python3 --version
+            python3 -c "import nbclient, nbformat, nbconvert, ipykernel" \
+              || python3 -m pip install -q nbclient nbformat nbconvert ipykernel
+            python3 devel/bin/ncnotebookdevtool test --colab --skip-slow -j 2 \
+              --workdir /work'
+    - name: Upload logs of failed notebooks
+      if: failure()
+      uses: actions/upload-artifact@v7
+      with:
+        name: failed-colab
+        path: |
+          ${{ runner.temp }}/work/*.log
+          ${{ runner.temp }}/work/*/*.executed.ipynb
