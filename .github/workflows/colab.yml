@@ -9,8 +9,9 @@ name: colab
 # not test Colab itself (e.g. its user interface). Notebooks needing conda
 # install it with condacolab, after which the kernel is restarted, as on Colab.
 #
-# The image is large (about 7 GB compressed). Whether to keep running this on
-# every push is to be decided once its overhead is known.
+# The image is large (about 7 GB compressed). All notebooks run on every push,
+# the slow ones in a separate job in parallel, so that the others finish
+# sooner.
 
 on:
   push:
@@ -24,8 +25,14 @@ env:
 jobs:
 
   colab:
-    name: Notebooks in the Colab runtime image
+    name: ${{ matrix.name }} in the Colab runtime image
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Notebooks', key: 'normal', select: '--skip-slow' }
+          - { name: 'Slow notebooks', key: 'slow', select: '--only-slow' }
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     #The image does not fit in the free disk space of the runner otherwise:
@@ -46,20 +53,17 @@ jobs:
       with:
         path: ${{ runner.temp }}/ncnbdata
         key: ncnb-data-colab-v1
-    #Each notebook runs in its own fresh container (see the script). Notebooks
-    #marked as slow are skipped on push (as in the tests workflow), but run in
-    #the weekly and manually started runs:
+    #Each notebook runs in its own fresh container (see the script):
     - name: Run notebooks in the Colab runtime image
-      env:
-        SKIP_SLOW: ${{ github.event_name == 'push' && '--skip-slow' || '' }}
       run: |
         bash .github/scripts/colab-test.sh "$COLAB_IMAGE" \
-          "${{ runner.temp }}/work" "${{ runner.temp }}/ncnbdata" 2 $SKIP_SLOW
+          "${{ runner.temp }}/work" "${{ runner.temp }}/ncnbdata" 2 \
+          ${{ matrix.select }}
     - name: Upload logs of failed notebooks
       if: failure()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: failed-colab
+        name: failed-colab-${{ matrix.key }}
         path: |
           ${{ runner.temp }}/work/*.out
           ${{ runner.temp }}/work/*/*.log
