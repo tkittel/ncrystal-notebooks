@@ -81,6 +81,7 @@ class EnvSetup:
         self.args = args
         self.cfg = cfg
         self.workdir = pathlib.Path(workdir)
+        self.workdir.mkdir( parents = True, exist_ok = True )
         self.log = self.workdir / 'environments.log'
         self.ncrystal_src = ( pathlib.Path(args.ncrystal_src).absolute()
                               if args.ncrystal_src else None )

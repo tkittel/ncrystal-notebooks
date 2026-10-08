@@ -540,3 +540,13 @@ def test_nbexec_restart_after_cell( tmp_path ):
         assert p.returncode == 0, p.stdout + p.stderr
         assert 'Restarting the kernel after cell 2' in p.stdout
     assert run( 'abrupt.ipynb' ).returncode != 0
+
+def test_envsetup_creates_workdir( tmp_path ):
+    #The log of the environments is written in the work directory, which must
+    #therefore exist (the launch mode passes one which does not exist yet):
+    import types
+
+    from ncnb_devtools.envsetup import EnvSetup
+    workdir = tmp_path / 'not' / 'yet'
+    s = EnvSetup( types.SimpleNamespace( ncrystal_src = None ), None, workdir )
+    assert workdir.is_dir() and s.log.parent == workdir
