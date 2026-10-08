@@ -21,7 +21,7 @@ from .dirs import reporoot
 from .expand import Requirements, expand
 from .nbsettings import section_notebooks
 
-SPHINX_PACKAGES = [ 'sphinx', 'myst-nb', 'sphinx-book-theme' ]
+SPHINX_PACKAGES = [ 'sphinx', 'myst-nb', 'sphinx-book-theme', 'linkify-it-py' ]
 
 def colab_url( cfg, shortkey ):
     return ( 'https://colab.research.google.com/github/'
@@ -50,8 +50,9 @@ extensions = [ 'myst_nb' ]
 nb_execution_mode = 'off'
 #(attrs_block for the ids of the sections, which the notebooks have as {{#id}}
 #before the headings, see headings.py):
+#(linkify: bare URLs in the text become links, as in Jupyter)
 myst_enable_extensions = [ 'dollarmath', 'amsmath', 'colon_fence',
-                           'attrs_block' ]
+                           'attrs_block', 'linkify' ]
 myst_heading_anchors = 3
 html_theme = 'sphinx_book_theme'
 html_theme_options = {{
@@ -59,6 +60,8 @@ html_theme_options = {{
     'use_repository_button' : True,
     'path_to_docs' : '',
     'show_toc_level' : 2,
+    #(Links show the full GitHub URLs, not only "owner/repo":)
+    'shorten_urls' : False,
     #The notebooks of the sections are shown in the menu:
     'show_navbar_depth' : 2,
     #No table of contents to the right of the front page:
